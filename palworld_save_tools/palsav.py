@@ -1,9 +1,18 @@
 import zlib
 
+from palworld_save_tools.oodle_lib import OodleLib
+
 MAGIC_BYTES = b"PlZ"
 
 
-def decompress_sav_to_gvas(data: bytes) -> tuple[bytes, int]:
+def decompress_sav_to_gvas(data: bytes, zlib: bool = False) -> tuple[bytes, int]:
+    if zlib:
+        return decompress_sav_to_gvas_with_zlib(data)
+
+    return OodleLib().decompress_sav_to_gvas(data)
+
+
+def decompress_sav_to_gvas_with_zlib(data: bytes) -> tuple[bytes, int]:
     uncompressed_len = int.from_bytes(data[0:4], byteorder="little")
     compressed_len = int.from_bytes(data[4:8], byteorder="little")
     magic_bytes = data[8:11]
@@ -52,8 +61,13 @@ def decompress_sav_to_gvas(data: bytes) -> tuple[bytes, int]:
 
     return uncompressed_data, save_type
 
+def compress_gvas_to_sav(data: bytes, save_type: int, zlib: bool = False) -> bytes:
+    if zlib:
+        return compress_gvas_to_sav_with_zlib(data, save_type)
 
-def compress_gvas_to_sav(data: bytes, save_type: int) -> bytes:
+    return OodleLib().compress_gvas_to_sav(data, save_type)
+
+def compress_gvas_to_sav_with_zlib(data: bytes, save_type: int) -> bytes:
     uncompressed_len = len(data)
     compressed_data = zlib.compress(data)
     compressed_len = len(compressed_data)
