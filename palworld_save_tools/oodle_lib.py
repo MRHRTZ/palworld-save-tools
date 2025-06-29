@@ -67,32 +67,23 @@ class Compressor(CtypesEnum):
 
 class CompressOptions(ctypes.Structure):
     _fields_ = [
-        ("m_verbosity", ctypes.c_uint32),
-        ("m_pfnPrintf", ctypes.c_void_p),
-        ("m_pPrintfUserData", ctypes.c_void_p),
-        ("m_pfnJob", ctypes.c_void_p),
-        ("m_pJobUserData", ctypes.c_void_p),
-        ("m_jobNum", ctypes.c_int),
-        ("m_pfnUserAlloc", ctypes.c_void_p),
-        ("m_pUserAllocUserData", ctypes.c_void_p),
-        ("m_parent_handles", ctypes.c_void_p),
-        ("m_num_parent_handles", ctypes.c_int),
-        ("m_http_cache", ctypes.c_void_p),
-        ("m_fuzzSafe", ctypes.c_int),
-        ("m_checkCRC", ctypes.c_int),
-        ("m_dictionarySize", ctypes.c_int),
-        ("m_spaceSpeedTradeoffBytes", ctypes.c_int),
-        ("m_maxLocalDictionarySize", ctypes.c_int),
-        ("m_makeLongRangeMatcher", ctypes.c_int),
-        ("m_effort", ctypes.c_int),
-        ("m_minMatchLen", ctypes.c_int),
-        ("m_seekChunkReset", ctypes.c_bool),      # PENTING
-        ("m_seekChunkLen", ctypes.c_int),         # PENTING
-        ("m_profile", ctypes.c_int),
-        ("m_sendQuantumCRCs", ctypes.c_int),
-        ("m_maxHuffmansPerChunk", ctypes.c_int),
-        ("m_fastParser", ctypes.c_void_p),
-        ("m_reserved", ctypes.c_ubyte * 24), # Gunakan ubyte untuk memastikan ukuran byte pas
+        ("unused_was_verbosity", ctypes.c_uint32),
+        ("minMatchLen", ctypes.c_int32),
+        ("seekChunkReset", ctypes.c_int32),  # OO_BOOL is a 32-bit integer
+        ("seekChunkLen", ctypes.c_int32),
+        ("profile", ctypes.c_int32),
+        ("dictionarySize", ctypes.c_int32),
+        ("spaceSpeedTradeoffBytes", ctypes.c_int32),
+        ("unused_was_maxHuffmansPerChunk", ctypes.c_int32),
+        ("sendQuantumCRCs", ctypes.c_int32),  # OO_BOOL is a 32-bit integer
+        ("maxLocalDictionarySize", ctypes.c_int32),
+        ("makeLongRangeMatcher", ctypes.c_int32),  # OO_BOOL is a 32-bit integer
+        ("matchTableSizeLog2", ctypes.c_int32),
+        ("jobify", ctypes.c_int32),
+        ("jobifyUserPtr", ctypes.c_void_p),
+        ("farMatchMinLen", ctypes.c_int32),
+        ("farMatchOffsetLog2", ctypes.c_int32),
+        ("reserved", ctypes.c_uint32 * 4),
     ]
     
 class OodleLib:
@@ -402,7 +393,7 @@ def main():
         sys.exit(1)
 
     try:
-        decompressor = OodleDecompressor()
+        decompressor = OodleLib()
         save_type = decompressor.decompress_file(input_file, output_file)
         print(f"Decompression completed! Save type: 0x{save_type:02X}")
     except Exception as e:
