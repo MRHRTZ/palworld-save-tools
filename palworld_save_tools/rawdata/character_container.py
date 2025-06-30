@@ -24,6 +24,8 @@ def decode_bytes(
         "player_uid": reader.guid(),
         "instance_id": reader.guid(),
         "permission_tribe_id": reader.byte(),
+        "reserved": reader.u32(),  # 00 00 00 00
+        "unknown_flag": reader.byte(),  # 00
     }
     if not reader.eof():
         raise Exception("Warning: EOF not reached")

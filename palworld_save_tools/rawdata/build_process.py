@@ -21,6 +21,7 @@ def decode_bytes(
     data = {
         "state": reader.byte(),
         "id": reader.guid(),
+        "unknown_int": reader.u32(),
     }
     if not reader.eof():
         raise Exception("Warning: EOF not reached")
@@ -42,5 +43,6 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer = FArchiveWriter()
     writer.byte(p["state"])
     writer.guid(p["id"])
+    writer.u32(p["unknown_int"])
     encoded_bytes = writer.bytes()
     return encoded_bytes
