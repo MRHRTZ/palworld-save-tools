@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+import base64
 
 from palworld_save_tools.archive import *
 
@@ -19,22 +19,26 @@ def decode_bytes(
 ) -> Optional[dict[str, Any]]:
     if len(c_bytes) == 0:
         return None
-
+    reader = parent_reader.internal_copy(bytes(c_bytes), debug=False)
+    data: dict[str, Any] = {
+        "permission": {
+            "type_a": reader.u32(),
+            "type_b": reader.u32(),
+            "item_static_id": reader.fstring(),
+        },
+        "corruption_progress_value": reader.float(),
+    }
+    unknown_bytes = reader.read_to_end()
     try:
-        reader = parent_reader.internal_copy(bytes(c_bytes), debug=False)
-        data: dict[str, Any] = {}
-        data["permission"] = {
-            "type_a": reader.tarray(lambda r: r.byte()),
-            "type_b": reader.tarray(lambda r: r.byte()),
-            "item_static_ids": reader.tarray(lambda r: r.fstring()),
-        }
-        data["corruption_progress_value"] = reader.float()
-        if not reader.eof():
-            raise Exception("Warning: EOF not reached")
-        return data
-    except Exception as e:
-        print(f"Error in decode_bytes: {e}")
-        return {"raw_bytes": c_bytes}
+        uuid_bytes = unknown_bytes[12:28]
+        local_id = UUID(uuid_bytes)
+        data["local_id"] = local_id
+    except ValueError:
+        data["unknown_padding"] = base64.b64encode(unknown_bytes).decode()
+
+    if not reader.eof():
+        raise Exception("Warning: EOF not reached")
+    return data
 
 
 def encode(
@@ -51,17 +55,11 @@ def encode(
 def encode_bytes(p: dict[str, Any]) -> bytes:
     if p is None:
         return bytes()
-    if "raw_bytes" in p:
-        # This is raw data, just return it
-        if isinstance(p["raw_bytes"], list):
-            return bytes(p["raw_bytes"])
-        return bytes()
     writer = FArchiveWriter()
-    writer.tarray(lambda w, d: w.byte(d), p["permission"]["type_a"])
-    writer.tarray(lambda w, d: w.byte(d), p["permission"]["type_b"])
-    writer.tarray(
-        lambda w, d: (w.fstring(d), None)[1], p["permission"]["item_static_ids"]
-    )
+    writer.u32(p["permission"]["type_a"])
+    writer.u32(p["permission"]["type_b"])
+    writer.fstring(p["permission"]["item_static_id"])
     writer.float(p["corruption_progress_value"])
+    writer.write(base64.b64decode(p["unknown_padding"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

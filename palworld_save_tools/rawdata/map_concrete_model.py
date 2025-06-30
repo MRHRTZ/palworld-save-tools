@@ -450,11 +450,93 @@ def decode_bytes(
         )
         return {"values": m_bytes}
 
+    remaining_bytes = len(m_bytes) - reader.data.tell()
+    remaining_data = reader.read_to_end()
+
+    # parse item drop list (replace empty drop_item_infos)
+    if remaining_bytes > 0:
+        temp_reader = parent_reader.internal_copy(remaining_data, debug=False)
+        data["actual_drop_items"] = parse_item_drop_list(temp_reader, remaining_bytes)
+
     if not reader.eof():
-        print(
+        raise Exception(
             f"Warning: EOF not reached for {object_id} {map_object_concrete_model}: ori: {''.join(f'{b:02x}' for b in m_bytes)} remaining: {reader.size - reader.data.tell()}"
         )
     return data
+
+
+def parse_item_drop_list(
+    reader: FArchiveReader, total_bytes: int
+) -> list[dict[str, Any]]:
+    """parse item drop list"""
+    items = []
+
+    try:
+        while not reader.eof() and reader.data.tell() < total_bytes:
+            # read item info
+            item_count_or_type = reader.u32()  # maybe count or type id
+            string_length = reader.u32()  # string length
+
+            # validate string length
+            if string_length > 100 or string_length == 0:
+                # maybe not the expected format, break
+                break
+
+            # read item name
+            string_data = reader.read(string_length)
+            try:
+                item_name = string_data.decode("ascii").rstrip("\x00")
+            except:
+                # decode failed, maybe not a string
+                break
+
+            # calculate and skip padding bytes (32 bytes aligned)
+            padding_needed = (32 - (string_length % 32)) % 32
+            if padding_needed > 0:
+                reader.read(padding_needed)
+
+            # check if there are more data to read additional values
+            remaining = total_bytes - reader.data.tell()
+            additional_values = []
+
+            # try to read subsequent values (usually count, state, etc.)
+            while (
+                remaining >= 4 and len(additional_values) < 4
+            ):  # max 4 additional values
+                try:
+                    next_value = reader.u32()
+                    additional_values.append(next_value)
+                    remaining -= 4
+
+                    # if the next value looks like a string length (less than 100 and not 0), it's the next item
+                    if remaining >= 4:
+                        peek_pos = reader.data.tell()
+                        potential_string_len = reader.u32()
+                        reader.data.seek(peek_pos)  # back
+
+                        if 0 < potential_string_len < 100:
+                            # this might be the string length of the next item, stop reading additional values
+                            break
+                except:
+                    break
+
+            # create item entry
+            item = {
+                "count_or_type": item_count_or_type,
+                "item_name": item_name,
+                "additional_values": additional_values,
+            }
+            items.append(item)
+
+            # prevent infinite loop
+            if len(items) > 50:  # reasonable item count limit
+                break
+
+    except Exception as e:
+        # if parsing fails, return the parsed part
+        pass
+
+    return items
 
 
 def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
@@ -490,6 +572,9 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
         writer.guid(p["item_id"]["dynamic_id"]["local_id_in_created_world"])
     elif map_object_concrete_model == "PalMapObjectItemDropOnDamagModel":
         writer.tarray(pal_item_and_slot_writer, p["drop_item_infos"])
+        # encode actual drop items list
+        if "actual_drop_items" in p:
+            encode_item_drop_list(writer, p["actual_drop_items"])
     elif map_object_concrete_model == "PalMapObjectDeathPenaltyStorageModel":
         writer.guid(p["owner_player_uid"])
         if "created_at" in p:
@@ -540,3 +625,24 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
 
     encoded_bytes = writer.bytes()
     return encoded_bytes
+
+
+def encode_item_drop_list(writer: FArchiveWriter, items: list[dict[str, Any]]) -> None:
+    """encode item drop list"""
+    for item in items:
+        # write count or type
+        writer.u32(item["count_or_type"])
+
+        # write string
+        item_name = item["item_name"]
+        writer.u32(len(item_name))
+        writer.write(item_name.encode("ascii"))
+
+        # write padding bytes (32 bytes aligned)
+        padding_needed = (32 - (len(item_name) % 32)) % 32
+        if padding_needed > 0:
+            writer.write(b"\x00" * padding_needed)
+
+        # write additional values
+        for value in item.get("additional_values", []):
+            writer.u32(value)
