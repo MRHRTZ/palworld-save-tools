@@ -147,7 +147,6 @@ def decode_work_assign_bytes(
 
     if not reader.eof():
         raise Exception("Warning: EOF not reached")
-
     return data
 
 

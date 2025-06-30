@@ -47,5 +47,6 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.byte(p["current_order_type"])
     writer.byte(p["current_battle_type"])
     writer.guid(p["container_id"])
+        
     encoded_bytes = writer.bytes()
     return encoded_bytes

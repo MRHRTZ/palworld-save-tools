@@ -39,7 +39,7 @@ def decode_bytes(
     }
     data["created_at"] = reader.i64()
     if not reader.eof():
-        data["trailing_unparsed_data"] = [b for b in reader.read_to_end()]
+        raise Exception("Warning: EOF not reached")
     return data
 
 
@@ -78,7 +78,5 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.u32(1 if p["stage_instance_id_belong_to"]["valid"] else 0)
 
     writer.i64(p["created_at"])
-    if "trailing_unparsed_data" in p:
-        writer.write(bytes(p["trailing_unparsed_data"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

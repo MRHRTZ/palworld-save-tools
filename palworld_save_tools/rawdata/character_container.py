@@ -26,7 +26,7 @@ def decode_bytes(
         "permission_tribe_id": reader.byte(),
     }
     if not reader.eof():
-        data["trailing_unparsed_data"] = [b for b in reader.read_to_end()]
+        raise Exception("Warning: EOF not reached")
     return data
 
 
@@ -48,7 +48,5 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.guid(p["player_uid"])
     writer.guid(p["instance_id"])
     writer.byte(p["permission_tribe_id"])
-    if "trailing_unparsed_data" in p:
-        writer.write(bytes(p["trailing_unparsed_data"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes
