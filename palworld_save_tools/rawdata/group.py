@@ -141,8 +141,8 @@ def decode_bytes(
 
         # Store any trailing data
         if not reader.eof():
-            group_data["trailing_unparsed_data"] = [b for b in reader.read_to_end()]
-
+            raise Exception("Warning: EOF not reached")
+        
         return group_data
     except Exception as e:
         print(f"Error decoding group data of type {group_type}: {e}")
@@ -200,7 +200,5 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
             writer.guid(p["players"][i]["player_uid"])
             writer.i64(p["players"][i]["player_info"]["last_online_real_time"])
             writer.fstring(p["players"][i]["player_info"]["player_name"])
-    if "trailing_unparsed_data" in p:
-        writer.write(bytes(p["trailing_unparsed_data"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

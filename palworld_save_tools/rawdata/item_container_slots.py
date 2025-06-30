@@ -30,7 +30,7 @@ def decode_bytes(
         }
         data["corruption_progress_value"] = reader.float()
         if not reader.eof():
-            data["trailing_unparsed_data"] = [b for b in reader.read_to_end()]
+            raise Exception("Warning: EOF not reached")
         return data
     except Exception as e:
         print(f"Error in decode_bytes: {e}")
@@ -63,7 +63,5 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
         lambda w, d: (w.fstring(d), None)[1], p["permission"]["item_static_ids"]
     )
     writer.float(p["corruption_progress_value"])
-    if "trailing_unparsed_data" in p:
-        writer.write(bytes(p["trailing_unparsed_data"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

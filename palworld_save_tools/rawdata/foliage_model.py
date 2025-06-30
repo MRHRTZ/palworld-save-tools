@@ -50,6 +50,5 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.i64(p["cell_coord"]["x"])
     writer.i64(p["cell_coord"]["y"])
     writer.i64(p["cell_coord"]["z"])
-
     encoded_bytes = writer.bytes()
     return encoded_bytes
