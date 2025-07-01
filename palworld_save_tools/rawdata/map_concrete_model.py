@@ -1,3 +1,4 @@
+import json
 from typing import Any, Sequence
 
 from palworld_save_tools.archive import *
@@ -377,9 +378,7 @@ NO_OP_TYPES = set(
         "PalMapObjectDefenseWaitModel",
         "PalMapObjectDisplayCharacterModel",
         "PalMapObjectDamagedScarecrowModel",
-        "PalMapObjectBaseCampWorkerDirectorModel",
         "PalMapObjectHeatSourceModel",
-        "PalMapObjectPalMedicineBoxModel",
     ]
 )
 
@@ -413,13 +412,11 @@ def decode_bytes(
             data["start_time"] = reader.i64()
             data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
         case "PalMapObjectFarmSkillFruitsModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["skill_fruits_id"] = reader.fstring()
             data["current_state"] = reader.byte()
-            data["can_transport"] = reader.bool()
-            data["unknown_bytes"] = reader.byte_list(3)
             data["progress_rate"] = reader.float()
-            data["max_growth"] = reader.float()
-            data["growth"] = reader.float()
+            data["trailing_bytes"] = reader.byte_list(20)
         case "PalMapObjectSupplyStorageModel":
             data["created_at_real_time"] = reader.i64()
             data["trailing_bytes"] = reader.byte_list(8)
@@ -434,6 +431,7 @@ def decode_bytes(
             data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
         case "PalMapObjectEnergyStorageModel":
             data["stored_energy_amount"] = reader.float()
+            data["trailing_bytes"] = reader.byte_list(8)
         case "PalMapObjectDeathDroppedCharacterModel":
             data["stored_parameter_id"] = reader.guid()
             data["owner_player_uid"] = reader.guid()
@@ -550,6 +548,8 @@ def decode_bytes(
             | "PalMapObjectCharacterMakeModel"
             | "PalMapObjectPalFoodBoxModel"
             | "PalMapObjectPlayerSitModel"
+            | "PalMapObjectBaseCampWorkerDirectorModel"
+            | "PalMapObjectPalMedicineBoxModel"
         ):
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectDimensionPalStorageModel":
@@ -588,13 +588,11 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.i64(p["start_time"])
             writer.write(bytes(p["unknown_bytes"]))
         case "PalMapObjectFarmSkillFruitsModel":
+            writer.write(bytes(p["leading_bytes"]))
             writer.fstring(p["skill_fruits_id"])
             writer.byte(p["current_state"])
-            writer.bool(p["can_transport"])
-            writer.write(bytes(p["unknown_bytes"]))
             writer.float(p["progress_rate"])
-            writer.float(p["max_growth"])
-            writer.float(p["growth"])
+            writer.float(p["trailing_bytes"])
         case "PalMapObjectSupplyStorageModel":
             writer.i64(p["created_at_real_time"])
             writer.write(bytes(p["trailing_bytes"]))
@@ -609,6 +607,7 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.write(bytes(p["unknown_bytes"]))
         case "PalMapObjectEnergyStorageModel":
             writer.float(p["stored_energy_amount"])
+            writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectDeathDroppedCharacterModel":
             writer.guid(p["stored_parameter_id"])
             writer.guid(p["owner_player_uid"])
@@ -718,6 +717,8 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             | "PalMapObjectPalFoodBoxModel"
             | "PalMapObjectPlayerSitModel"
             | "PalMapObjectDimensionPalStorageModel"
+            | "PalMapObjectBaseCampWorkerDirectorModel"
+            | "PalMapObjectPalMedicineBoxModel"
         ):
             writer.write(bytes(p["trailing_bytes"]))
         case _:
