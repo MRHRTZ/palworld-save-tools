@@ -11,6 +11,7 @@ WORK_BASE_TYPES = set(
         "EPalWorkableType::TransportItemInBaseCamp",
         "EPalWorkableType::ReviveCharacter",
         # "EPalWorkableType::CollectResource",
+        "EPalWorkableType::Booth",
         "EPalWorkableType::LevelObject",
         "EPalWorkableType::Repair",
         "EPalWorkableType::Defense",
@@ -75,18 +76,32 @@ def decode_bytes(
         data["assignable_otomo"] = reader.u32() > 0
         data["can_trigger_worker_event"] = reader.u32() > 0
         data["can_steal_assign"] = reader.u32() > 0
-        if work_type == "EPalWorkableType::Defense":
-            data["defense_combat_type"] = reader.byte()
-        elif work_type == "EPalWorkableType::Progress":
-            data["required_work_amount"] = reader.float()
-            data["work_exp"] = reader.i32()
-            data["current_work_amount"] = reader.float()
-            data["auto_work_self_amount_by_sec"] = reader.float()
-        elif work_type == "EPalWorkableType::ReviveCharacter":
-            data["target_individual_id"] = {
-                "player_uid": reader.guid(),
-                "instance_id": reader.guid(),
-            }
+        match work_type:
+            case "EPalWorkableType::Defense":
+                data["defense_combat_type"] = reader.byte()
+            case "EPalWorkableType::Progress":
+                data["required_work_amount"] = reader.float()
+                data["current_work_amount"] = reader.float()
+                data["work_exp"] = reader.i32()
+                data["work_exp_calc_type"] = reader.byte()
+                data["auto_work_self_amount_by_sec"] = reader.float()
+                data["progress_time_since_last_tick"] = reader.float()
+                data["tick_process_min_interval"] = reader.float()
+            case "EPalWorkableType::ReviveCharacter":
+                data["target_individual_id"] = {
+                    "player_uid": reader.guid(),
+                    "instance_id": reader.guid(),
+                }
+            case (
+                "EPalWorkableType::Repair"
+                | "EPalWorkableType::MonsterFarm"
+                | "EPalWorkableType::OnlyJoinAndWalkAround"
+                | "EPalWorkableType::OnlyJoin"
+                | "EPalWorkableType::Booth"
+            ):
+                data["required_work_amount"] = reader.float()
+            case _:
+                pass
     # These two do not serialize base data
     elif work_type in ["EPalWorkableType::Assign", "EPalWorkableType::LevelObject"]:
         data["handle_id"] = reader.guid()
@@ -106,20 +121,12 @@ def decode_bytes(
         return {"values": b_bytes}
     # UPalWorkProgressTransformBase->SerializeProperties
     transform_type = reader.byte()
-    data["transform"] = {"type": transform_type, "v2": 0}
-    if transform_type == 1:
-        data["transform"].update(reader.ftransform())
-    elif transform_type == 2:
-        data["transform"]["map_object_instance_id"] = reader.guid()
-    elif transform_type == 3:
-        data["transform"]["guid"] = reader.guid()
-        data["transform"]["instance_id"] = reader.guid()
-    else:
-        remaining_data = reader.read_to_end()
-        print(
-            f"Unknown EPalWorkTransformType, please report this: {transform_type}: {work_type}: {''.join(f'{b:02x}' for b in remaining_data)}"
-        )
-        data["transform"]["raw_data"] = [b for b in remaining_data]
+    data["transform"] = {"type": transform_type}
+
+    match transform_type:
+        case 2:
+            data["transform"]["map_object_instance_id"] = reader.guid()
+            data["transform"]["trailing_bytes"] = reader.byte_list(8)
 
     if not reader.eof():
         raise Exception(
@@ -144,9 +151,10 @@ def decode_work_assign_bytes(
     }
     data["state"] = reader.byte()
     data["fixed"] = reader.u32() > 0
-
+    data["trailing_bytes"] = reader.byte_list(4)
     if not reader.eof():
         raise Exception("Warning: EOF not reached")
+
     return data
 
 
@@ -205,16 +213,30 @@ def encode_bytes(p: dict[str, Any], work_type: str) -> bytes:
         writer.u32(1 if p["assignable_otomo"] else 0)
         writer.u32(1 if p["can_trigger_worker_event"] else 0)
         writer.u32(1 if p["can_steal_assign"] else 0)
-        if work_type == "EPalWorkableType::Defense":
-            writer.byte(p["defense_combat_type"])
-        elif work_type == "EPalWorkableType::Progress":
-            writer.float(p["required_work_amount"])
-            writer.i32(p["work_exp"])
-            writer.float(p["current_work_amount"])
-            writer.float(p["auto_work_self_amount_by_sec"])
-        elif work_type == "EPalWorkableType::ReviveCharacter":
-            writer.guid(p["target_individual_id"]["player_uid"])
-            writer.guid(p["target_individual_id"]["instance_id"])
+        match work_type:
+            case "EPalWorkableType::Defense":
+                writer.byte(p["defense_combat_type"])
+            case "EPalWorkableType::Progress":
+                writer.float(p["required_work_amount"])
+                writer.float(p["current_work_amount"])
+                writer.i32(p["work_exp"])
+                writer.byte(p["work_exp_calc_type"])
+                writer.float(p["auto_work_self_amount_by_sec"])
+                writer.float(p["progress_time_since_last_tick"])
+                writer.float(p["tick_process_min_interval"])
+            case "EPalWorkableType::ReviveCharacter":
+                writer.guid(p["target_individual_id"]["player_uid"])
+                writer.guid(p["target_individual_id"]["instance_id"])
+            case (
+                "EPalWorkableType::Repair"
+                | "EPalWorkableType::MonsterFarm"
+                | "EPalWorkableType::OnlyJoinAndWalkAround"
+                | "EPalWorkableType::OnlyJoin"
+                | "EPalWorkableType::Booth"
+            ):
+                writer.float(p["required_work_amount"])
+            case _:
+                pass
     # These two do not serialize base data
     elif work_type in ["EPalWorkableType::Assign", "EPalWorkableType::LevelObject"]:
         writer.guid(p["handle_id"])
@@ -230,28 +252,10 @@ def encode_bytes(p: dict[str, Any], work_type: str) -> bytes:
     # UPalWorkProgressTransformBase->SerializeProperties
     transform_type = p["transform"]["type"]
     writer.byte(transform_type)
-    if transform_type == 1:
-        # pre-v2 the transform was deserialised in the wrong order
-        if "v2" not in p["transform"]:
-            writer.vector_dict(p["transform"]["location"])
-            writer.quat_dict(p["transform"]["rotation"])
-            writer.vector_dict(p["transform"]["scale"])
-        else:
-            writer.ftransform(p["transform"])
-    elif transform_type == 2:
-        writer.guid(p["transform"]["map_object_instance_id"])
-    elif transform_type == 3:
-        writer.guid(p["transform"]["guid"])
-        writer.guid(p["transform"]["instance_id"])
-    else:
-        print(
-            f"Unknown EPalWorkTransformType, please report this: {transform_type}: {work_type}"
-        )
-        # Convert list to bytes if necessary
-        if isinstance(p["transform"]["raw_data"], list):
-            writer.write(bytes(p["transform"]["raw_data"]))
-        else:
-            writer.write(p["transform"]["raw_data"])
+    match transform_type:
+        case 2:
+            writer.guid(p["transform"]["map_object_instance_id"])
+            writer.write(bytes(p["transform"]["trailing_bytes"]))
 
     encoded_bytes = writer.bytes()
     return encoded_bytes
@@ -267,6 +271,6 @@ def encode_work_assign_bytes(p: dict[str, Any]) -> bytes:
     writer.guid(p["assigned_individual_id"]["instance_id"])
     writer.byte(p["state"])
     writer.u32(1 if p["fixed"] else 0)
-
+    writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

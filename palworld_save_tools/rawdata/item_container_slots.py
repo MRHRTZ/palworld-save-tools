@@ -1,4 +1,4 @@
-import base64
+from typing import Any, Sequence
 
 from palworld_save_tools.archive import *
 
@@ -20,24 +20,18 @@ def decode_bytes(
     if len(c_bytes) == 0:
         return None
     reader = parent_reader.internal_copy(bytes(c_bytes), debug=False)
-    data: dict[str, Any] = {
-        "permission": {
-            "type_a": reader.u32(),
-            "type_b": reader.u32(),
-            "item_static_id": reader.fstring(),
+    data = {
+        "slot_index": reader.i32(),
+        "count": reader.i32(),
+        "item": {
+            "static_id": reader.fstring(),
+            "dynamic_id": {
+                "created_world_id": reader.guid(),
+                "local_id_in_created_world": reader.guid(),
+            },
         },
-        "corruption_progress_value": reader.float(),
+        "trailing_bytes": [int(b) for b in reader.read_to_end()],
     }
-    unknown_bytes = reader.read_to_end()
-    try:
-        uuid_bytes = unknown_bytes[12:28]
-        local_id = UUID(uuid_bytes)
-        data["local_id"] = local_id
-    except ValueError:
-        data["unknown_padding"] = base64.b64encode(unknown_bytes).decode()
-
-    if not reader.eof():
-        raise Exception("Warning: EOF not reached")
     return data
 
 
@@ -56,10 +50,11 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     if p is None:
         return bytes()
     writer = FArchiveWriter()
-    writer.u32(p["permission"]["type_a"])
-    writer.u32(p["permission"]["type_b"])
-    writer.fstring(p["permission"]["item_static_id"])
-    writer.float(p["corruption_progress_value"])
-    writer.write(base64.b64decode(p["unknown_padding"]))
+    writer.i32(p["slot_index"])
+    writer.i32(p["count"])
+    writer.fstring(p["item"]["static_id"])
+    writer.guid(p["item"]["dynamic_id"]["created_world_id"])
+    writer.guid(p["item"]["dynamic_id"]["local_id_in_created_world"])
+    writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

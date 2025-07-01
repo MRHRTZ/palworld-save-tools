@@ -4,6 +4,8 @@ from palworld_save_tools.archive import *
 from palworld_save_tools.rawdata.common import (
     pal_item_and_num_read,
     pal_item_and_slot_writer,
+    pal_item_booth_trade_info_read,
+    pal_item_booth_trade_info_writer,
 )
 
 # Generate using extract_map_object_concrete_classes.py
@@ -25,6 +27,8 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "damagablerock0004": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0005": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0017": "PalMapObjectItemDropOnDamagModel",
+    "damagablerock0018": "PalMapObjectItemDropOnDamagModel",
+    "damagablerock0019": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0006": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0007": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0008": "PalMapObjectItemDropOnDamagModel",
@@ -60,11 +64,15 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "farmblockv2_tomato": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_lettuce": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_berries": "PalMapObjectFarmBlockV2Model",
+    "farmblockv2_potato": "PalMapObjectFarmBlockV2Model",
+    "farmblockv2_onion": "PalMapObjectFarmBlockV2Model",
+    "farmblockv2_carrot": "PalMapObjectFarmBlockV2Model",
     "fasttravelpoint": "PalMapObjectFastTravelPointModel",
     "hightechkitchen": "PalMapObjectConvertItemModel",
     "itemchest": "PalMapObjectItemChestModel",
     "itemchest_02": "PalMapObjectItemChestModel",
     "itemchest_03": "PalMapObjectItemChestModel",
+    "itemchest_04": "PalMapObjectItemChestModel",
     "dev_itemchest": "PalMapObjectItemChestModel",
     "medicalpalbed": "PalMapObjectMedicalPalBedModel",
     "medicalpalbed_02": "PalMapObjectMedicalPalBedModel",
@@ -321,30 +329,57 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "treasurebox_electric": "PalMapObjectTreasureBoxModel",
     "treasurebox_ivy": "PalMapObjectTreasureBoxModel",
     "treasurebox_ice": "PalMapObjectTreasureBoxModel",
+    "treasurebox_fire": "PalMapObjectTreasureBoxModel",
+    "treasurebox_water": "PalMapObjectTreasureBoxModel",
+    "treasurebox_fishingjunk_requiredlonghold2": "PalMapObjectTreasureBoxModel",
+    "treasurebox_requiredlonghold": "PalMapObjectTreasureBoxModel",
+    "meteordrop_damagable": "PalMapObjectItemDropOnDamagModel",
+    "electricgenerator_large": "PalMapObjectGenerateEnergyModel",
+    "medicalpalbed_05": "PalMapObjectMedicalPalBedModel",
+    "pickupitem_nightstone": "PalMapObjectPickupItemOnLevelModel",
+    "workspeedincrease1": "PalMapObjectBaseCampPassiveEffectModel",
+    "coalpit": "PalMapObjectProductItemModel",
+    "quartzpit": "PalMapObjectProductItemModel",
+    "sulfurpit": "PalMapObjectProductItemModel",
+    "lab": "PalMapObjectLabModel",
+    "palmedicinebox": "PalMapObjectPalMedicineBoxModel",
+    "sanitydecrease1": "PalMapObjectBaseCampPassiveEffectModel",
+    "energystorage_electric": "PalMapObjectEnergyStorageModel",
+    "hugekitchen": "PalMapObjectConvertItemModel",
+    "spherefactory_black_04": "PalMapObjectConvertItemModel",
+    "icecrusher": "PalMapObjectConvertItemModel",
+    "wallsignboard": "PalMapObjectSignboardModel",
+    "skinchange": "BlueprintGeneratedClass",
+    "dismantlingconveyor": "BlueprintGeneratedClass",
+    "japanesestyle_doorwall_01": "PalMapObjectDoorModel",
+    "japanesestyle_doorwall_02": "PalMapObjectDoorModel",
+    "japanesestyle_doorwall_03": "PalMapObjectDoorModel",
+    "factory_money": "PalMapObjectConvertItemModel",
+    "multielectrichatchingpalegg": "PalMapObjectMultiHatchingEggModel",
+    "coolerpalfoodbox": "BlueprintGeneratedClass",
+    "itembooth": "PalMapObjectItemBoothModel",
+    "palbooth": "PalMapObjectPalBoothModel",
+    "supplydrop": "PalMapObjectSupplyStorageModel",
+    "tansu": "PalMapObjectItemChestModel",
+    "guildchest": "PalMapObjectGuildChestModel",
+    "basecampitemdispenser": "PalMapObjectBaseCampItemDispenserModel",
+    "farm_skillfruits": "PalMapObjectFarmSkillFruitsModel",
+    "expedition": "PalMapObjectCharacterTeamMissionModel",
+    "oilpump": "PalMapObjectProductItemModel",
+    "compositedesk": "PalMapObjectConvertItemModel",
+    "glass_doorwall": "PalMapObjectDoorModel",
+    "zaisu": "PalMapObjectPlayerSitModel",
+    "dimensionpalstorage": "PalMapObjectDimensionPalStorageModel",
 }
 NO_OP_TYPES = set(
     [
         "Default_PalMapObjectConcreteModelBase",
-        "PalBuildObject",
-        "PalMapObjectRankUpCharacterModel",
         "PalMapObjectDefenseWaitModel",
-        "PalMapObjectItemChestModel",
-        "PalMapObjectMedicalPalBedModel",
-        "PalMapObjectPalFoodBoxModel",
-        "PalMapObjectPlayerBedModel",
         "PalMapObjectDisplayCharacterModel",
-        "PalMapObjectDoorModel",
-        "PalMapObjectCharacterStatusOperatorModel",
-        "PalMapObjectAmusementModel",
-        "PalMapObjectRepairItemModel",
-        "PalMapObjectBaseCampPassiveEffectModel",
-        "PalMapObjectBaseCampPassiveWorkHardModel",
-        "PalMapObjectItemChest_AffectCorruption",
         "PalMapObjectDamagedScarecrowModel",
         "PalMapObjectBaseCampWorkerDirectorModel",
-        "PalMapObjectMonsterFarmModel",
-        "PalMapObjectLampModel",
         "PalMapObjectHeatSourceModel",
+        "PalMapObjectPalMedicineBoxModel",
     ]
 )
 
@@ -365,178 +400,171 @@ def decode_bytes(
     data["instance_id"] = reader.guid()
     data["model_instance_id"] = reader.guid()
 
-    def pickup_base():
-        data["auto_picked_up"] = reader.u32() > 0
-
     map_object_concrete_model = MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS[
         object_id.lower()
     ]
     data["concrete_model_type"] = map_object_concrete_model
-
-    if map_object_concrete_model in NO_OP_TYPES:
-        pass
-    elif map_object_concrete_model == "PalMapObjectDeathDroppedCharacterModel":
-        data["stored_parameter_id"] = reader.guid()
-        data["owner_player_uid"] = reader.guid()
-    elif map_object_concrete_model == "PalMapObjectConvertItemModel":
-        data["current_recipe_id"] = reader.fstring()
-        data["remain_product_num"] = reader.i32()
-        data["requested_product_num"] = reader.i32()
-        data["work_speed_additional_rate"] = reader.float()
-        if not reader.eof():
-            data["can_transport_out_product"] = reader.u32() > 0
-    elif map_object_concrete_model == "PalMapObjectPickupItemOnLevelModel":
-        pickup_base()
-    elif map_object_concrete_model == "PalMapObjectDropItemModel":
-        pickup_base()
-        data["item_id"] = {
-            "static_id": reader.fstring(),
-            "dynamic_id": {
-                "created_world_id": reader.guid(),
-                "local_id_in_created_world": reader.guid(),
-            },
-        }
-    elif map_object_concrete_model == "PalMapObjectItemDropOnDamagModel":
-        data["drop_item_infos"] = reader.tarray(pal_item_and_num_read)
-    elif map_object_concrete_model == "PalMapObjectDeathPenaltyStorageModel":
-        data["owner_player_uid"] = reader.guid()
-        if not reader.eof():
-            data["created_at"] = reader.u64()
-    elif map_object_concrete_model == "PalMapObjectDefenseBulletLauncherModel":
-        data["remaining_bullets"] = reader.i32()
-        data["magazine_size"] = reader.i32()
-        data["bullet_item_name"] = reader.fstring()
-    elif map_object_concrete_model == "PalMapObjectGenerateEnergyModel":
-        data["stored_energy_amount"] = reader.float()
-    elif map_object_concrete_model == "PalMapObjectFarmBlockV2Model":
-        data["crop_data_id"] = reader.fstring()
-        current_state = reader.byte()
-        data["current_state"] = current_state
-        data["crop_progress_rate_value"] = reader.float()
-        data["water_stack_rate_value"] = reader.float()
-        if not reader.eof():
+    match map_object_concrete_model:
+        case model if model in NO_OP_TYPES:
+            pass
+        case "PalMapObjectCharacterTeamMissionModel":
+            data["mission_id"] = reader.fstring()
+            data["state"] = reader.byte()
+            data["start_time"] = reader.i64()
+            data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectFarmSkillFruitsModel":
+            data["skill_fruits_id"] = reader.fstring()
+            data["current_state"] = reader.byte()
+            data["can_transport"] = reader.bool()
+            data["unknown_bytes"] = reader.byte_list(3)
+            data["progress_rate"] = reader.float()
+            data["max_growth"] = reader.float()
+            data["growth"] = reader.float()
+        case "PalMapObjectSupplyStorageModel":
+            data["created_at_real_time"] = reader.i64()
+            data["trailing_bytes"] = reader.byte_list(8)
+        case "PalMapObjectItemBoothModel":
+            data["leading_bytes"] = reader.byte_list(4)
+            data["private_lock_player_uid"] = reader.guid()
+            data["trade_infos"] = reader.tarray(pal_item_booth_trade_info_read)
+            data["trailing_bytes"] = reader.byte_list(20)
+        case "PalMapObjectPalBoothModel":
+            data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectMultiHatchingEggModel":
+            data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectEnergyStorageModel":
+            data["stored_energy_amount"] = reader.float()
+        case "PalMapObjectDeathDroppedCharacterModel":
+            data["stored_parameter_id"] = reader.guid()
+            data["owner_player_uid"] = reader.guid()
+            if not reader.eof():
+                data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectConvertItemModel":
+            data["leading_bytes"] = reader.byte_list(4)
+            data["current_recipe_id"] = reader.fstring()
+            data["requested_product_num"] = reader.i32()
+            data["remain_product_num"] = reader.i32()
+            data["work_speed_additional_rate"] = reader.float()
+            data["trailing_bytes"] = reader.byte_list(8)
+        case "PalMapObjectPickupItemOnLevelModel":
+            data["auto_picked_up"] = reader.u32() > 0
+        case "PalMapObjectDropItemModel":
+            data["auto_picked_up"] = reader.u32() > 0
+            data["pickupdable_player_uid"] = reader.guid()
+            data["remove_pickup_guard_timer_handle"] = reader.i64()
+            data["item_id"] = {
+                "static_id": reader.fstring(),
+                "dynamic_id": {
+                    "created_world_id": reader.guid(),
+                    "local_id_in_created_world": reader.guid(),
+                },
+            }
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectItemDropOnDamagModel":
+            data["drop_item_infos"] = reader.tarray(pal_item_and_num_read)
+            if not reader.eof():
+                data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectDeathPenaltyStorageModel":
+            data["owner_player_uid"] = reader.guid()
+            if not reader.eof():
+                data["created_at"] = reader.u64()
+        case "PalMapObjectDefenseBulletLauncherModel":
+            data["remaining_bullets"] = reader.i32()
+            data["magazine_size"] = reader.i32()
+            data["bullet_item_name"] = reader.fstring()
+        case "PalMapObjectGenerateEnergyModel":
+            data["generate_energy_rate_by_worker"] = reader.float()
+            data["stored_energy_amount"] = reader.float()
+            data["consume_energy_speed"] = reader.float()
+        case "PalMapObjectFarmBlockV2Model":
+            data["crop_progress_rate"] = reader.float()
+            data["crop_data_id"] = reader.fstring()
+            data["current_state"] = reader.byte()
+            data["crop_progress_rate_value"] = reader.float()
+            data["water_stack_rate_value"] = reader.float()
             data["state_machine"] = {
                 "growup_required_time": reader.float(),
                 "growup_progress_time": reader.float(),
             }
-    elif map_object_concrete_model == "PalMapObjectFastTravelPointModel":
-        data["location_instance_id"] = reader.guid()
-    elif map_object_concrete_model == "PalMapObjectShippingItemModel":
-        data["shipping_hours"] = reader.tarray(lambda r: r.i32())
-    elif map_object_concrete_model == "PalMapObjectProductItemModel":
-        data["work_speed_additional_rate"] = reader.float()
-        data["product_item_id"] = reader.fstring()
-    elif map_object_concrete_model == "PalMapObjectRecoverOtomoModel":
-        data["recover_amount_by_sec"] = reader.float()
-    elif map_object_concrete_model == "PalMapObjectHatchingEggModel":
-        data["hatched_character_save_parameter"] = reader.properties_until_end()
-        data["unknown_bytes"] = reader.u32()
-        data["hatched_character_guid"] = reader.guid()
-    elif map_object_concrete_model == "PalMapObjectTreasureBoxModel":
-        data["treasure_grade_type"] = reader.byte()
-    elif map_object_concrete_model == "PalMapObjectBreedFarmModel":
-        data["spawned_egg_instance_ids"] = reader.tarray(lambda r: r.guid())
-    elif map_object_concrete_model == "PalMapObjectSignboardModel":
-        data["signboard_text"] = reader.fstring()
-    elif map_object_concrete_model == "PalMapObjectTorchModel":
-        data["extinction_date_time"] = reader.i64()
-    elif map_object_concrete_model == "PalMapObjectPalEggModel":
-        data["unknown_bytes"] = reader.u32()
-    elif map_object_concrete_model == "PalMapObjectBaseCampPoint":
-        data["base_camp_id"] = reader.guid()
-    else:
-        print(
-            f"Warning: Unknown map object concrete model {map_object_concrete_model}, skipping"
-        )
-        return {"values": m_bytes}
-
-    remaining_bytes = len(m_bytes) - reader.data.tell()
-    remaining_data = reader.read_to_end()
-
-    # parse item drop list (replace empty drop_item_infos)
-    if remaining_bytes > 0:
-        temp_reader = parent_reader.internal_copy(remaining_data, debug=False)
-        data["actual_drop_items"] = parse_item_drop_list(temp_reader, remaining_bytes)
+            data["trailing_bytes"] = reader.byte_list(8)
+        case "PalMapObjectFastTravelPointModel":
+            data["location_instance_id"] = reader.guid()
+        case "PalMapObjectShippingItemModel":
+            data["shipping_hours"] = reader.tarray(lambda r: r.i32())
+        case "PalMapObjectProductItemModel":
+            data["work_speed_additional_rate"] = reader.float()
+            data["product_item_id"] = reader.fstring()
+        case "PalMapObjectRecoverOtomoModel":
+            data["recover_amount_by_sec"] = reader.float()
+        case "PalMapObjectHatchingEggModel":
+            data["leading_bytes"] = reader.byte_list(4)
+            data["hatched_character_save_parameter"] = reader.properties_until_end()
+            data["current_pal_egg_temp_diff"] = reader.i32()
+            data["hatched_character_guid"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectTreasureBoxModel":
+            data["treasure_grade_type"] = reader.byte()
+            data["treasure_special_type"] = reader.byte()
+            data["opened"] = reader.byte()
+            data["long_hold_interaction_duration"] = reader.float()
+            data["interact_player_action_type"] = reader.byte()
+            data["is_lock_riding"] = reader.byte()
+        case "PalMapObjectBreedFarmModel":
+            data["spawned_egg_instance_ids"] = reader.tarray(lambda r: r.guid())
+            data["breed_required_real_time"] = reader.float()
+            data["breed_progress_time"] = reader.float()
+        case "PalMapObjectSignboardModel":
+            data["signboard_text"] = reader.fstring()
+            if not reader.eof():
+                data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+        case "PalMapObjectTorchModel":
+            data["ignition_minutes"] = reader.i32()
+            data["extinction_date_time"] = reader.i64()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectPalEggModel":
+            data["long_hold_interact_duration"] = reader.float()
+        case "PalMapObjectBaseCampPoint":
+            data["leading_bytes"] = reader.byte_list(4)
+            data["base_camp_id"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectItemChestModel":
+            data["private_lock_player_uid"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(8)
+        case (
+            "PalMapObjectPlayerBedModel"
+            | "PalBuildObject"
+            | "PalMapObjectCharacterStatusOperatorModel"
+            | "PalMapObjectRankUpCharacterModel"
+            | "BlueprintGeneratedClass"
+            | "PalMapObjectMedicalPalBedModel"
+            | "PalMapObjectDoorModel"
+            | "PalMapObjectMonsterFarmModel"
+            | "PalMapObjectAmusementModel"
+            | "PalMapObjectLampModel"
+            | "PalMapObjectLabModel"
+            | "PalMapObjectRepairItemModel"
+            | "PalMapObjectBaseCampPassiveWorkHardModel"
+            | "PalMapObjectBaseCampPassiveEffectModel"
+            | "PalMapObjectBaseCampItemDispenserModel"
+            | "PalMapObjectGuildChestModel"
+            | "PalMapObjectCharacterMakeModel"
+            | "PalMapObjectPalFoodBoxModel"
+            | "PalMapObjectPlayerSitModel"
+        ):
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectDimensionPalStorageModel":
+            data["trailing_bytes"] = reader.byte_list(12)
+        case _:
+            print(
+                f"Warning: Unknown map object concrete model {map_object_concrete_model}, skipping"
+            )
+            return {"values": m_bytes}
 
     if not reader.eof():
         raise Exception(
             f"Warning: EOF not reached for {object_id} {map_object_concrete_model}: ori: {''.join(f'{b:02x}' for b in m_bytes)} remaining: {reader.size - reader.data.tell()}"
         )
     return data
-
-
-def parse_item_drop_list(
-    reader: FArchiveReader, total_bytes: int
-) -> list[dict[str, Any]]:
-    """parse item drop list"""
-    items = []
-
-    try:
-        while not reader.eof() and reader.data.tell() < total_bytes:
-            # read item info
-            item_count_or_type = reader.u32()  # maybe count or type id
-            string_length = reader.u32()  # string length
-
-            # validate string length
-            if string_length > 100 or string_length == 0:
-                # maybe not the expected format, break
-                break
-
-            # read item name
-            string_data = reader.read(string_length)
-            try:
-                item_name = string_data.decode("ascii").rstrip("\x00")
-            except:
-                # decode failed, maybe not a string
-                break
-
-            # calculate and skip padding bytes (32 bytes aligned)
-            padding_needed = (32 - (string_length % 32)) % 32
-            if padding_needed > 0:
-                reader.read(padding_needed)
-
-            # check if there are more data to read additional values
-            remaining = total_bytes - reader.data.tell()
-            additional_values = []
-
-            # try to read subsequent values (usually count, state, etc.)
-            while (
-                remaining >= 4 and len(additional_values) < 4
-            ):  # max 4 additional values
-                try:
-                    next_value = reader.u32()
-                    additional_values.append(next_value)
-                    remaining -= 4
-
-                    # if the next value looks like a string length (less than 100 and not 0), it's the next item
-                    if remaining >= 4:
-                        peek_pos = reader.data.tell()
-                        potential_string_len = reader.u32()
-                        reader.data.seek(peek_pos)  # back
-
-                        if 0 < potential_string_len < 100:
-                            # this might be the string length of the next item, stop reading additional values
-                            break
-                except:
-                    break
-
-            # create item entry
-            item = {
-                "count_or_type": item_count_or_type,
-                "item_name": item_name,
-                "additional_values": additional_values,
-            }
-            items.append(item)
-
-            # prevent infinite loop
-            if len(items) > 50:  # reasonable item count limit
-                break
-
-    except Exception as e:
-        # if parsing fails, return the parsed part
-        pass
-
-    return items
 
 
 def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
@@ -551,98 +579,151 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
     writer.guid(p["instance_id"])
     writer.guid(p["model_instance_id"])
 
-    if map_object_concrete_model in NO_OP_TYPES:
-        pass
-    elif map_object_concrete_model == "PalMapObjectDeathDroppedCharacterModel":
-        writer.guid(p["stored_parameter_id"])
-        writer.guid(p["owner_player_uid"])
-    elif map_object_concrete_model == "PalMapObjectConvertItemModel":
-        writer.fstring(p["current_recipe_id"])
-        writer.i32(p["remain_product_num"])
-        writer.i32(p["requested_product_num"])
-        writer.float(p["work_speed_additional_rate"])
-        if "can_transport_out_product" in p:
-            writer.u32(1 if p["can_transport_out_product"] else 0)
-    elif map_object_concrete_model == "PalMapObjectPickupItemOnLevelModel":
-        writer.u32(1 if p["auto_picked_up"] else 0)
-    elif map_object_concrete_model == "PalMapObjectDropItemModel":
-        writer.u32(1 if p["auto_picked_up"] else 0)
-        writer.fstring(p["item_id"]["static_id"])
-        writer.guid(p["item_id"]["dynamic_id"]["created_world_id"])
-        writer.guid(p["item_id"]["dynamic_id"]["local_id_in_created_world"])
-    elif map_object_concrete_model == "PalMapObjectItemDropOnDamagModel":
-        writer.tarray(pal_item_and_slot_writer, p["drop_item_infos"])
-        # encode actual drop items list
-        if "actual_drop_items" in p:
-            encode_item_drop_list(writer, p["actual_drop_items"])
-    elif map_object_concrete_model == "PalMapObjectDeathPenaltyStorageModel":
-        writer.guid(p["owner_player_uid"])
-        if "created_at" in p:
-            writer.u64(p["created_at"])
-    elif map_object_concrete_model == "PalMapObjectDefenseBulletLauncherModel":
-        writer.i32(p["remaining_bullets"])
-        writer.i32(p["magazine_size"])
-        writer.fstring(p["bullet_item_name"])
-    elif map_object_concrete_model == "PalMapObjectGenerateEnergyModel":
-        writer.float(p["stored_energy_amount"])
-    elif map_object_concrete_model == "PalMapObjectFarmBlockV2Model":
-        writer.fstring(p["crop_data_id"])
-        writer.byte(p["current_state"])
-        writer.float(p["crop_progress_rate_value"])
-        writer.float(p["water_stack_rate_value"])
-        if "state_machine" in p:
+    match map_object_concrete_model:
+        case model if model in NO_OP_TYPES:
+            pass
+        case "PalMapObjectCharacterTeamMissionModel":
+            writer.fstring(p["mission_id"])
+            writer.byte(p["state"])
+            writer.i64(p["start_time"])
+            writer.write(bytes(p["unknown_bytes"]))
+        case "PalMapObjectFarmSkillFruitsModel":
+            writer.fstring(p["skill_fruits_id"])
+            writer.byte(p["current_state"])
+            writer.bool(p["can_transport"])
+            writer.write(bytes(p["unknown_bytes"]))
+            writer.float(p["progress_rate"])
+            writer.float(p["max_growth"])
+            writer.float(p["growth"])
+        case "PalMapObjectSupplyStorageModel":
+            writer.i64(p["created_at_real_time"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectItemBoothModel":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.guid(p["private_lock_player_uid"])
+            writer.tarray(pal_item_booth_trade_info_writer, p["trade_infos"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectPalBoothModel":
+            writer.write(bytes(p["unknown_bytes"]))
+        case "PalMapObjectMultiHatchingEggModel":
+            writer.write(bytes(p["unknown_bytes"]))
+        case "PalMapObjectEnergyStorageModel":
+            writer.float(p["stored_energy_amount"])
+        case "PalMapObjectDeathDroppedCharacterModel":
+            writer.guid(p["stored_parameter_id"])
+            writer.guid(p["owner_player_uid"])
+            if "unknown_bytes" in p:
+                writer.write(bytes(p["unknown_bytes"]))
+        case "PalMapObjectConvertItemModel":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.fstring(p["current_recipe_id"])
+            writer.i32(p["requested_product_num"])
+            writer.i32(p["remain_product_num"])
+            writer.float(p["work_speed_additional_rate"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectPickupItemOnLevelModel":
+            writer.u32(1 if p["auto_picked_up"] else 0)
+        case "PalMapObjectDropItemModel":
+            writer.u32(1 if p["auto_picked_up"] else 0)
+            writer.guid(p["pickupdable_player_uid"])
+            writer.i64(p["remove_pickup_guard_timer_handle"])
+            writer.fstring(p["item_id"]["static_id"])
+            writer.guid(p["item_id"]["dynamic_id"]["created_world_id"])
+            writer.guid(p["item_id"]["dynamic_id"]["local_id_in_created_world"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectItemDropOnDamagModel":
+            writer.tarray(pal_item_and_slot_writer, p["drop_item_infos"])
+            if "unknown_bytes" in p:
+                writer.write(bytes(p["unknown_bytes"]))
+        case "PalMapObjectDeathPenaltyStorageModel":
+            writer.guid(p["owner_player_uid"])
+            if "created_at" in p:
+                writer.u64(p["created_at"])
+        case "PalMapObjectDefenseBulletLauncherModel":
+            writer.i32(p["remaining_bullets"])
+            writer.i32(p["magazine_size"])
+            writer.fstring(p["bullet_item_name"])
+        case "PalMapObjectGenerateEnergyModel":
+            writer.float(p["generate_energy_rate_by_worker"])
+            writer.float(p["stored_energy_amount"])
+            writer.float(p["consume_energy_speed"])
+        case "PalMapObjectFarmBlockV2Model":
+            writer.float(p["crop_progress_rate"])
+            writer.fstring(p["crop_data_id"])
+            writer.byte(p["current_state"])
+            writer.float(p["crop_progress_rate_value"])
+            writer.float(p["water_stack_rate_value"])
             writer.float(p["state_machine"]["growup_required_time"])
             writer.float(p["state_machine"]["growup_progress_time"])
-    elif map_object_concrete_model == "PalMapObjectFastTravelPointModel":
-        writer.guid(p["location_instance_id"])
-    elif map_object_concrete_model == "PalMapObjectShippingItemModel":
-        writer.tarray(lambda w, x: w.i32(x), p["shipping_hours"])
-    elif map_object_concrete_model == "PalMapObjectProductItemModel":
-        writer.float(p["work_speed_additional_rate"])
-        writer.fstring(p["product_item_id"])
-    elif map_object_concrete_model == "PalMapObjectRecoverOtomoModel":
-        writer.float(p["recover_amount_by_sec"])
-    elif map_object_concrete_model == "PalMapObjectHatchingEggModel":
-        writer.properties(p["hatched_character_save_parameter"])
-        writer.u32(p["unknown_bytes"])
-        writer.guid(p["hatched_character_guid"])
-    elif map_object_concrete_model == "PalMapObjectTreasureBoxModel":
-        writer.byte(p["treasure_grade_type"])
-    elif map_object_concrete_model == "PalMapObjectBreedFarmModel":
-        writer.tarray(lambda w, x: w.guid(x), p["spawned_egg_instance_ids"])
-    elif map_object_concrete_model == "PalMapObjectSignboardModel":
-        writer.fstring(p["signboard_text"])
-    elif map_object_concrete_model == "PalMapObjectTorchModel":
-        writer.i64(p["extinction_date_time"])
-    elif map_object_concrete_model == "PalMapObjectPalEggModel":
-        writer.u32(p["unknown_bytes"])
-    elif map_object_concrete_model == "PalMapObjectBaseCampPoint":
-        writer.guid(p["base_camp_id"])
-    else:
-        raise Exception(
-            f"Unknown map object concrete model {map_object_concrete_model}"
-        )
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectFastTravelPointModel":
+            writer.guid(p["location_instance_id"])
+        case "PalMapObjectShippingItemModel":
+            writer.tarray(lambda w, x: w.i32(x), p["shipping_hours"])
+        case "PalMapObjectProductItemModel":
+            writer.float(p["work_speed_additional_rate"])
+            writer.fstring(p["product_item_id"])
+        case "PalMapObjectRecoverOtomoModel":
+            writer.float(p["recover_amount_by_sec"])
+        case "PalMapObjectHatchingEggModel":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.properties(p["hatched_character_save_parameter"])
+            writer.i32(p["current_pal_egg_temp_diff"])
+            writer.guid(p["hatched_character_guid"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectTreasureBoxModel":
+            writer.byte(p["treasure_grade_type"])
+            writer.byte(p["treasure_special_type"])
+            writer.byte(p["opened"])
+            writer.float(p["long_hold_interaction_duration"])
+            writer.byte(p["interact_player_action_type"])
+            writer.byte(p["is_lock_riding"])
+        case "PalMapObjectBreedFarmModel":
+            writer.tarray(lambda w, x: w.guid(x), p["spawned_egg_instance_ids"])
+            writer.float(p["breed_required_real_time"])
+            writer.float(p["breed_progress_time"])
+        case "PalMapObjectSignboardModel":
+            writer.fstring(p["signboard_text"])
+        case "PalMapObjectTorchModel":
+            writer.i32(p["ignition_minutes"])
+            writer.i64(p["extinction_date_time"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectPalEggModel":
+            writer.u32(p["long_hold_interact_duration"])
+        case "PalMapObjectBaseCampPoint":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.guid(p["base_camp_id"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectItemChestModel":
+            writer.guid(p["private_lock_player_uid"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case (
+            "PalMapObjectPlayerBedModel"
+            | "PalBuildObject"
+            | "PalMapObjectCharacterStatusOperatorModel"
+            | "PalMapObjectRankUpCharacterModel"
+            | "BlueprintGeneratedClass"
+            | "PalMapObjectMedicalPalBedModel"
+            | "PalMapObjectDoorModel"
+            | "PalMapObjectMonsterFarmModel"
+            | "PalMapObjectAmusementModel"
+            | "PalMapObjectLampModel"
+            | "PalMapObjectLabModel"
+            | "PalMapObjectRepairItemModel"
+            | "PalMapObjectBaseCampPassiveWorkHardModel"
+            | "PalMapObjectBaseCampPassiveEffectModel"
+            | "PalMapObjectBaseCampItemDispenserModel"
+            | "PalMapObjectGuildChestModel"
+            | "PalMapObjectCharacterMakeModel"
+            | "PalMapObjectPalFoodBoxModel"
+            | "PalMapObjectPlayerSitModel"
+            | "PalMapObjectDimensionPalStorageModel"
+        ):
+            writer.write(bytes(p["trailing_bytes"]))
+        case _:
+            raise Exception(
+                f"Unknown map object concrete model {map_object_concrete_model}"
+            )
 
     encoded_bytes = writer.bytes()
     return encoded_bytes
-
-
-def encode_item_drop_list(writer: FArchiveWriter, items: list[dict[str, Any]]) -> None:
-    """encode item drop list"""
-    for item in items:
-        # write count or type
-        writer.u32(item["count_or_type"])
-
-        # write string
-        item_name = item["item_name"]
-        writer.u32(len(item_name))
-        writer.write(item_name.encode("ascii"))
-
-        # write padding bytes (32 bytes aligned)
-        padding_needed = (32 - (len(item_name) % 32)) % 32
-        if padding_needed > 0:
-            writer.write(b"\x00" * padding_needed)
-
-        # write additional values
-        for value in item.get("additional_values", []):
-            writer.u32(value)
