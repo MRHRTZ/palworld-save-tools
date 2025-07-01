@@ -1,5 +1,9 @@
 from typing import Any, Optional, Sequence
 from palworld_save_tools.archive import FArchiveReader, FArchiveWriter
+from palworld_save_tools.rawdata.common import (
+    lab_research_rep_info_read,
+    lab_research_rep_info_writer,
+)
 
 
 def decode(
@@ -17,7 +21,10 @@ def decode_bytes(
     parent_reader: FArchiveReader, m_bytes: Sequence[int]
 ) -> dict[str, Any]:
     reader = parent_reader.internal_copy(bytes(m_bytes), debug=False)
-    return {"container_id": reader.guid()}
+    data: dict[str, Any] = {}
+    data["research_info"] = reader.tarray(lab_research_rep_info_read)
+    data["current_research_id"] = reader.fstring()
+    return data
 
 
 def encode(
@@ -36,7 +43,8 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
         return b""
 
     writer = FArchiveWriter()
-    writer.guid(p["container_id"])
+    writer.tarray(lab_research_rep_info_writer, p["research_info"])
+    writer.fstring(p["current_research_id"])
 
     encoded_bytes = writer.bytes()
     return encoded_bytes

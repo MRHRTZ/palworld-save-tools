@@ -13,6 +13,7 @@ NO_OP_TYPES = [
     "EPalBaseCampModuleType::ItemStorages",
     "EPalBaseCampModuleType::FacilityReservation",
     "EPalBaseCampModuleType::ObjectMaintenance",
+    "EPalBaseCampModuleType::ItemStackInfo",
 ]
 
 
@@ -44,6 +45,9 @@ PASSIVE_EFFECT_ENUM = {
     0: "EPalBaseCampPassiveEffectType::None",
     1: "EPalBaseCampPassiveEffectType::WorkSuitability",
     2: "EPalBaseCampPassiveEffectType::WorkHard",
+    3: "EPalBaseCampPassiveEffectType::AllWorkSpeed",
+    4: "EPalBaseCampPassiveEffectType::SanityDecreaseSuppressor",
+    5: "EPalBaseCampPassiveEffectType::EPalBaseCampPassiveEffectType_MAX",
 }
 
 
@@ -54,7 +58,7 @@ def module_passive_effect_reader(reader: FArchiveReader) -> dict[str, Any]:
         raise Exception(f"Unknown passive effect type {data['type']}")
     elif data["type"] == 2:
         data["work_hard_type"] = reader.byte()
-        data["unknown_trailer"] = [b for b in reader.read(4)]
+        data["unknown_trailer"] = [b for b in reader.read(12)]
     return data
 
 
