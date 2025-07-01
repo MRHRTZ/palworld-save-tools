@@ -38,13 +38,8 @@ def decode_bytes(
         "valid": reader.u32() > 0,
     }
     data["created_at"] = reader.i64()
-
-    data["unknown_int1"] = reader.u32()
-    data["unknown_int2"] = reader.u32()
-    data["unknown_int3"] = reader.u32()
-
     if not reader.eof():
-        raise Exception("Warning: EOF not reached")
+        data["unknown_data"] = [int(b) for b in reader.read_to_end()]
     return data
 
 
@@ -83,11 +78,8 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.u32(1 if p["stage_instance_id_belong_to"]["valid"] else 0)
 
     writer.i64(p["created_at"])
-
-    # new unknown int fields
-    writer.u32(p["unknown_int1"])
-    writer.u32(p["unknown_int2"])
-    writer.u32(p["unknown_int3"])
+    if "unknown_data" in p:
+        writer.write(bytes(p["unknown_data"]))
 
     encoded_bytes = writer.bytes()
     return encoded_bytes
