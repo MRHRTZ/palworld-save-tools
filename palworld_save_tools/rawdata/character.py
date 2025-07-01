@@ -23,6 +23,7 @@ def decode_bytes(
         "unknown_bytes": reader.byte_list(4),
         "group_id": reader.guid(),
     }
+    char_data["trailing_bytes"] = reader.byte_list(4)
     if not reader.eof():
         raise Exception("Warning: EOF not reached")
     return char_data
@@ -44,5 +45,6 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.properties(p["object"])
     writer.write(bytes(p["unknown_bytes"]))
     writer.guid(p["group_id"])
+    writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

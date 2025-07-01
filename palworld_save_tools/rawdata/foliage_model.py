@@ -26,6 +26,7 @@ def decode_bytes(
         "y": reader.i64(),
         "z": reader.i64(),
     }
+    data["trailing_bytes"] = reader.byte_list(4)
     if not reader.eof():
         raise Exception("Warning: EOF not reached")
     return data
@@ -50,5 +51,6 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     writer.i64(p["cell_coord"]["x"])
     writer.i64(p["cell_coord"]["y"])
     writer.i64(p["cell_coord"]["z"])
+    writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

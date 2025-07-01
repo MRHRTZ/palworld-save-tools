@@ -1,6 +1,8 @@
+import json
 from typing import Any, Sequence
 
 from palworld_save_tools.archive import *
+from palworld_save_tools.json_tools import CustomEncoder
 
 # EPalMapObjectConcreteModelModuleType::None = 0,
 # EPalMapObjectConcreteModelModuleType::ItemContainer = 1,
@@ -38,33 +40,41 @@ def decode_bytes(
     reader = parent_reader.internal_copy(bytes(m_bytes), debug=False)
     data: dict[str, Any] = {}
 
-    if module_type == "EPalMapObjectConcreteModelModuleType::ItemContainer":
-        data["target_container_id"] = reader.guid()
-        data["slot_attribute_indexes"] = reader.tarray(module_slot_indexes_reader)
-        data["all_slot_attribute"] = reader.tarray(lambda r: r.byte())
-        data["drop_item_at_disposed"] = reader.u32() > 0
-        data["usage_type"] = reader.byte()
-    elif module_type == "EPalMapObjectConcreteModelModuleType::CharacterContainer":
-        data["target_container_id"] = reader.guid()
-    elif module_type == "EPalMapObjectConcreteModelModuleType::Workee":
-        data["target_work_id"] = reader.guid()
-    elif module_type == "EPalMapObjectConcreteModelModuleType::Energy":
-        pass
-    elif module_type == "EPalMapObjectConcreteModelModuleType::StatusObserver":
-        pass
-    elif module_type == "EPalMapObjectConcreteModelModuleType::ItemStack":
-        pass
-    elif module_type == "EPalMapObjectConcreteModelModuleType::Switch":
-        data["switch_state"] = reader.byte()
-    elif module_type == "EPalMapObjectConcreteModelModuleType::PlayerRecord":
-        pass
-    elif module_type == "EPalMapObjectConcreteModelModuleType::BaseCampPassiveEffect":
-        pass
-    elif module_type == "EPalMapObjectConcreteModelModuleType::PasswordLock":
-        data["lock_state"] = reader.byte()
-        data["password"] = reader.fstring()
-        data["player_infos"] = reader.tarray(player_lock_info_reader)
-
+    match module_type:
+        case "EPalMapObjectConcreteModelModuleType::ItemContainer":
+            data["target_container_id"] = reader.guid()
+            data["slot_attribute_indexes"] = reader.tarray(module_slot_indexes_reader)
+            data["all_slot_attribute"] = reader.tarray(lambda r: r.byte())
+            data["drop_item_at_disposed"] = reader.u32() > 0
+            data["usage_type"] = reader.byte()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "EPalMapObjectConcreteModelModuleType::CharacterContainer":
+            data["target_container_id"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "EPalMapObjectConcreteModelModuleType::Workee":
+            data["target_work_id"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "EPalMapObjectConcreteModelModuleType::Energy":
+            pass
+        case "EPalMapObjectConcreteModelModuleType::StatusObserver":
+            pass
+        case "EPalMapObjectConcreteModelModuleType::ItemStack":
+            pass
+        case "EPalMapObjectConcreteModelModuleType::Switch":
+            data["switch_state"] = reader.byte()
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "EPalMapObjectConcreteModelModuleType::PlayerRecord":
+            pass
+        case "EPalMapObjectConcreteModelModuleType::BaseCampPassiveEffect":
+            pass
+        case "EPalMapObjectConcreteModelModuleType::PasswordLock":
+            data["lock_state"] = reader.byte()
+            data["password"] = reader.fstring()
+            data["player_infos"] = reader.tarray(player_lock_info_reader)
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "EPalMapObjectConcreteModelModuleType::RequireElementalAction":
+            data["unlock_item"] = reader.fstring()
+            data["trailing_bytes"] = reader.byte_list(12)
     if not reader.eof():
         raise Exception(f"Warning: EOF not reached for module type {module_type}")
     return data
@@ -86,22 +96,31 @@ def encode_bytes(p: dict[str, Any], module_type: str) -> bytes:
         return bytes()
     writer = FArchiveWriter()
 
-    if module_type == "EPalMapObjectConcreteModelModuleType::ItemContainer":
-        writer.guid(p["target_container_id"])
-        writer.tarray(module_slot_indexes_writer, p["slot_attribute_indexes"])
-        writer.tarray(lambda w, v: w.byte(v), p["all_slot_attribute"])
-        writer.u32(1 if p["drop_item_at_disposed"] else 0)
-        writer.byte(p["usage_type"])
-    elif module_type == "EPalMapObjectConcreteModelModuleType::CharacterContainer":
-        writer.guid(p["target_container_id"])
-    elif module_type == "EPalMapObjectConcreteModelModuleType::Workee":
-        writer.guid(p["target_work_id"])
-    elif module_type == "EPalMapObjectConcreteModelModuleType::Switch":
-        writer.byte(p["switch_state"])
-    elif module_type == "EPalMapObjectConcreteModelModuleType::PasswordLock":
-        writer.byte(p["lock_state"])
-        writer.fstring(p["password"])
-        writer.tarray(player_lock_info_writer, p["player_infos"])
+    match module_type:
+        case "EPalMapObjectConcreteModelModuleType::ItemContainer":
+            writer.guid(p["target_container_id"])
+            writer.tarray(module_slot_indexes_writer, p["slot_attribute_indexes"])
+            writer.tarray(lambda w, v: w.byte(v), p["all_slot_attribute"])
+            writer.u32(1 if p["drop_item_at_disposed"] else 0)
+            writer.byte(p["usage_type"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "EPalMapObjectConcreteModelModuleType::CharacterContainer":
+            writer.guid(p["target_container_id"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "EPalMapObjectConcreteModelModuleType::Workee":
+            writer.guid(p["target_work_id"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "EPalMapObjectConcreteModelModuleType::Switch":
+            writer.byte(p["switch_state"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "EPalMapObjectConcreteModelModuleType::PasswordLock":
+            writer.byte(p["lock_state"])
+            writer.fstring(p["password"])
+            writer.tarray(player_lock_info_writer, p["player_infos"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "EPalMapObjectConcreteModelModuleType::RequireElementalAction":
+            writer.fstring(p["unlock_item"])
+            writer.write(bytes(p["trailing_bytes"]))
 
     encoded_bytes = writer.bytes()
     return encoded_bytes

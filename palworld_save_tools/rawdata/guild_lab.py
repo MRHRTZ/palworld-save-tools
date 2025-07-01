@@ -1,6 +1,5 @@
-from typing import Any, Sequence
-
-from palworld_save_tools.archive import *
+from typing import Any, Optional, Sequence
+from palworld_save_tools.archive import FArchiveReader, FArchiveWriter
 
 
 def decode(
@@ -15,19 +14,10 @@ def decode(
 
 
 def decode_bytes(
-    parent_reader: FArchiveReader, b_bytes: Sequence[int]
+    parent_reader: FArchiveReader, m_bytes: Sequence[int]
 ) -> dict[str, Any]:
-    reader = parent_reader.internal_copy(bytes(b_bytes), debug=False)
-    data: dict[str, Any] = {}
-    data["id"] = reader.guid()
-    data["spawn_transform"] = reader.ftransform()
-    data["current_order_type"] = reader.byte()
-    data["current_battle_type"] = reader.byte()
-    data["container_id"] = reader.guid()
-    data["trailing_bytes"] = reader.byte_list(4)
-    if not reader.eof():
-        raise Exception("Warning: EOF not reached")
-    return data
+    reader = parent_reader.internal_copy(bytes(m_bytes), debug=False)
+    return {"container_id": reader.guid()}
 
 
 def encode(
@@ -41,13 +31,12 @@ def encode(
     return writer.property_inner(property_type, properties)
 
 
-def encode_bytes(p: dict[str, Any]) -> bytes:
+def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
+    if p is None:
+        return b""
+
     writer = FArchiveWriter()
-    writer.guid(p["id"])
-    writer.ftransform(p["spawn_transform"])
-    writer.byte(p["current_order_type"])
-    writer.byte(p["current_battle_type"])
     writer.guid(p["container_id"])
-    writer.write(bytes(p["trailing_bytes"]))
+
     encoded_bytes = writer.bytes()
     return encoded_bytes

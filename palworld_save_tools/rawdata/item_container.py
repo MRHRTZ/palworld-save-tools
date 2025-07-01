@@ -25,6 +25,7 @@ def decode_bytes(
         "type_a": reader.tarray(lambda r: r.byte()),
         "type_b": reader.tarray(lambda r: r.byte()),
         "item_static_ids": reader.tarray(lambda r: r.fstring()),
+        "unknown_int": reader.u64()
     }
     if not reader.eof():
         raise Exception("Warning: EOF not reached")

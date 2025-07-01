@@ -31,18 +31,21 @@ def decode_bytes(
     egg_data = try_read_egg(reader)
     if isinstance(egg_data, dict):
         data |= egg_data
-    elif (reader.size - reader.data.tell()) == 4:
+    elif (reader.size - reader.data.tell()) == 12:
         data["type"] = "armor"
         data["durability"] = reader.float()
+        data["trailing_bytes"] = reader.byte_list(8)
         if not reader.eof():
             raise Exception("Warning: EOF not reached")
     else:
         cur_pos = reader.data.tell()
         temp_data: dict[str, Any] = {"type": "weapon"}
         try:
+            temp_data["leading_bytes"] = reader.byte_list(4)
             temp_data["durability"] = reader.float()
             temp_data["remaining_bullets"] = reader.i32()
             temp_data["passive_skill_list"] = reader.tarray(lambda r: r.fstring())
+            temp_data["trailing_bytes"] = reader.byte_list(4)
             if not reader.eof():
                 raise Exception("Warning: EOF not reached")
             data |= temp_data
@@ -59,10 +62,10 @@ def try_read_egg(reader: FArchiveReader) -> Optional[dict[str, Any]]:
     cur_pos = reader.data.tell()
     try:
         data: dict[str, Any] = {"type": "egg"}
+        data["leading_bytes"] = reader.byte_list(4)
         data["character_id"] = reader.fstring()
         data["object"] = reader.properties_until_end()
-        data["unknown_bytes"] = reader.byte_list(4)
-        data["unknown_id"] = reader.guid()
+        data["trailing_bytes"] = reader.byte_list(28)
         if not reader.eof():
             raise Exception("Warning: EOF not reached")
         return data
@@ -94,15 +97,18 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
     if p["type"] == "unknown":
         writer.write(bytes(p["trailer"]))
     elif p["type"] == "egg":
+        writer.write(bytes(p["leading_bytes"]))
         writer.fstring(p["character_id"])
         writer.properties(p["object"])
-        writer.write(bytes(p["unknown_bytes"]))
-        writer.guid(p["unknown_id"])
+        writer.write(bytes(p["trailing_bytes"]))
     elif p["type"] == "armor":
         writer.float(p["durability"])
+        writer.write(bytes(p["trailing_bytes"]))
     elif p["type"] == "weapon":
+        writer.write(bytes(p["leading_bytes"]))
         writer.float(p["durability"])
         writer.i32(p["remaining_bullets"])
         writer.tarray(lambda w, d: (w.fstring(d), None)[1], p["passive_skill_list"])
+        writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

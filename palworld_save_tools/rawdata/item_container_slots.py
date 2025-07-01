@@ -19,22 +19,20 @@ def decode_bytes(
 ) -> Optional[dict[str, Any]]:
     if len(c_bytes) == 0:
         return None
-
-    try:
-        reader = parent_reader.internal_copy(bytes(c_bytes), debug=False)
-        data: dict[str, Any] = {}
-        data["permission"] = {
-            "type_a": reader.tarray(lambda r: r.byte()),
-            "type_b": reader.tarray(lambda r: r.byte()),
-            "item_static_ids": reader.tarray(lambda r: r.fstring()),
-        }
-        data["corruption_progress_value"] = reader.float()
-        if not reader.eof():
-            raise Exception("Warning: EOF not reached")
-        return data
-    except Exception as e:
-        print(f"Error in decode_bytes: {e}")
-        return {"raw_bytes": c_bytes}
+    reader = parent_reader.internal_copy(bytes(c_bytes), debug=False)
+    data = {
+        "slot_index": reader.i32(),
+        "count": reader.i32(),
+        "item": {
+            "static_id": reader.fstring(),
+            "dynamic_id": {
+                "created_world_id": reader.guid(),
+                "local_id_in_created_world": reader.guid(),
+            },
+        },
+        "trailing_bytes": [int(b) for b in reader.read_to_end()],
+    }
+    return data
 
 
 def encode(
@@ -51,17 +49,12 @@ def encode(
 def encode_bytes(p: dict[str, Any]) -> bytes:
     if p is None:
         return bytes()
-    if "raw_bytes" in p:
-        # This is raw data, just return it
-        if isinstance(p["raw_bytes"], list):
-            return bytes(p["raw_bytes"])
-        return bytes()
     writer = FArchiveWriter()
-    writer.tarray(lambda w, d: w.byte(d), p["permission"]["type_a"])
-    writer.tarray(lambda w, d: w.byte(d), p["permission"]["type_b"])
-    writer.tarray(
-        lambda w, d: (w.fstring(d), None)[1], p["permission"]["item_static_ids"]
-    )
-    writer.float(p["corruption_progress_value"])
+    writer.i32(p["slot_index"])
+    writer.i32(p["count"])
+    writer.fstring(p["item"]["static_id"])
+    writer.guid(p["item"]["dynamic_id"]["created_world_id"])
+    writer.guid(p["item"]["dynamic_id"]["local_id_in_created_world"])
+    writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes
