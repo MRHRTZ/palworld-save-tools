@@ -5,18 +5,43 @@ from palworld_save_tools.oodle_lib import OodleLib # to be deleted soon, after l
 
 MAGIC_BYTES = [b"PlZ", b"PlM"]
 
+def check_sav_format(sav_data: bytes) -> int:
+    """
+    Check SAV file format
+    Returns: 1=PLM(Oodle), 0=PLZ(Zlib), -1=Unknown
+    """
+    if len(sav_data) < 24:
+        return -1
 
+    # Determine header offset
+    header_offset = 12 if sav_data.startswith(b"CNK") else 0
+
+    if len(sav_data) < header_offset + 11:
+        return -1
+
+    # Check magic bytes
+    magic = sav_data[header_offset + 8 : header_offset + 11]
+
+    if magic == b"PlM":
+        return 1  # PLM format (Oodle)
+    elif magic == b"PlZ":
+        return 0  # PLZ format (Zlib)
+    else:
+        return -1  # Unknown format
+        
 def decompress_sav_to_gvas(data: bytes, zlib: bool = False) -> tuple[bytes, int]:
-    format = OozLib().check_sav_format(data)
+    format = check_sav_format(data)
     
     if format == 0:
         print("Using zlib decompression for Palworld save")
         return decompress_sav_to_gvas_with_zlib(data)
+    elif format == 1:
+        print("Using Oodle decompression for Palworld save")
+        return OozLib().decompress_sav_to_gvas(data)
     elif format == -1:
         raise Exception("Unknown save format")
 
     print("Using Oodle decompression for Palworld save")
-    return OozLib().decompress_sav_to_gvas(data)
 
 
 def decompress_sav_to_gvas_with_zlib(data: bytes) -> tuple[bytes, int]:
@@ -87,7 +112,7 @@ def compress_gvas_to_sav_with_zlib(data: bytes, save_type: int) -> bytes:
     result = bytearray()
     result.extend(uncompressed_len.to_bytes(4, byteorder="little"))
     result.extend(compressed_len.to_bytes(4, byteorder="little"))
-    result.extend(MAGIC_BYTES)
+    result.extend(MAGIC_BYTES[0])  # Use the first magic bytes
     result.extend(bytes([save_type]))
     result.extend(compressed_data)
 

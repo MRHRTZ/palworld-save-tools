@@ -10,6 +10,8 @@ from palworld_save_tools.rawdata import (
     foliage_model,
     foliage_model_instance,
     group,
+    guild_item_storage,
+    guild_lab,
     item_container,
     item_container_slots,
     map_object,
@@ -51,6 +53,11 @@ PALWORLD_TYPE_HINTS: dict[str, str] = {
     ".worldSaveData.OilrigSaveData.OilrigMap.Value": "StructProperty",
     ".worldSaveData.SupplySaveData.SupplyInfos.Key": "Guid",
     ".worldSaveData.SupplySaveData.SupplyInfos.Value": "StructProperty",
+    ".worldSaveData.GuildExtraSaveDataMap.Key": "Guid",
+    ".worldSaveData.GuildExtraSaveDataMap.Value": "StructProperty",
+    ".worldSaveData.EnemyCampSaveData.EnemyCampStatusMap.Value.TreasureBoxInfoMapBySpawnerName.Value": "StructProperty",
+    ".worldSaveData.DungeonSaveData.DungeonSaveData.RewardSaveDataMap.Key": "Guid",
+    ".worldSaveData.DungeonSaveData.DungeonSaveData.RewardSaveDataMap.Value": "StructProperty",
 }
 
 PALWORLD_CUSTOM_PROPERTIES: dict[
@@ -113,13 +120,17 @@ PALWORLD_CUSTOM_PROPERTIES: dict[
         map_object.decode,
         map_object.encode,
     ),
+    ".worldSaveData.GuildExtraSaveDataMap.Value.GuildItemStorage.RawData": (
+        guild_item_storage.decode,
+        guild_item_storage.encode,
+    ),
+    ".worldSaveData.GuildExtraSaveDataMap.Value.Lab.RawData": (
+        guild_lab.decode,
+        guild_lab.encode,
+    ),
 }
 
 # List of properties that are not working with newer versions
 DISABLED_PROPERTIES = {
     ".worldSaveData.BaseCampSaveData.Value.ModuleMap",
-    ".worldSaveData.MapObjectSaveData",
-    # Broken in v0.3.7 - memory optimisation, UObject fields encoded into raw data
-    # Parsing behaviour can be controlled with CustomVersionData
-    ".worldSaveData.ItemContainerSaveData.Value.Slots.Slots.RawData",
 }

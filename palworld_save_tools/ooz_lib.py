@@ -1,5 +1,6 @@
 import os
 import sys
+import zlib
 import struct
 import ctypes
 import subprocess
@@ -39,12 +40,9 @@ class OozLib:
             )
         
         try:
-            # IMPORTANT: Add the DLL's directory to the search path
-            # This helps Windows find other required DLLs like libbun.dll
             dll_directory = os.path.dirname(dll_path)
             os.add_dll_directory(dll_directory)
 
-            print(f"Loading library from: {dll_path}")
             return ctypes.cdll.LoadLibrary(dll_path)
             
         except OSError as e:
@@ -172,8 +170,8 @@ class OozLib:
         uncompressed_len, compressed_len, magic, save_type, data_offset = (
             self._parse_sav_header(sav_data)
         )
-
-        print(f"File information:")
+        
+        print(f"File information (Decompress):")
         print(f"  Magic bytes: {magic.decode('ascii', errors='ignore')}")
         print(f"  Save type: 0x{save_type:02X}")
         print(f"  Compressed size: {compressed_len:,} bytes")
@@ -228,36 +226,51 @@ class OozLib:
         if src_len == 0:
             raise ValueError("Input data for compression must not be empty.")
 
-        # === Prepare source and destination buffers ===
-        src_buf = ctypes.create_string_buffer(gvas_data)
-        dst_capacity = src_len * 2  # safe margin
-        dst_buf = ctypes.create_string_buffer(dst_capacity)
+        if save_type == 0x32:
+            print("Force Zlib Compression")
+            compressed_data = zlib.compress(gvas_data)
+            compressed_len = len(compressed_data)
+            compressed_data = zlib.compress(compressed_data)
+            magic_bytes = b"PlZ"  # Zlib bytes
+        elif save_type == 0x31:
+            # === Prepare source and destination buffers ===
+            src_buf = ctypes.create_string_buffer(gvas_data)
+            dst_capacity = src_len + 65536  # allocate extra bytes
+            dst_buf = ctypes.create_string_buffer(dst_capacity + 8)
 
-        # === Call Ooz_Compress ===
-        print("Calling Ooz_Compress...")
-        result = self.lib.Ooz_Compress(
-            OODLE_COMPRESSOR_ID,  # e.g. 8 for Kraken
-            ctypes.cast(src_buf, ctypes.c_void_p),
-            src_len,
-            ctypes.cast(dst_buf, ctypes.c_void_p),
-            dst_capacity,
-            OODLE_LEVEL           # compression level, e.g. 4
-        )
+            # === Call Ooz_Compress ===
+            print("Calling Ooz_Compress...")
+            result = self.lib.Ooz_Compress(
+                OODLE_COMPRESSOR_ID,  # e.g. 8 for Kraken
+                ctypes.cast(src_buf, ctypes.c_void_p),
+                src_len,
+                ctypes.cast(dst_buf, ctypes.c_void_p),
+                dst_capacity,
+                OODLE_LEVEL           # compression level, e.g. 4
+            )
 
-        if result <= 0:
-            raise RuntimeError(f"Ooz_Compress failed or returned empty result (code: {result})")
+            if result <= 0:
+                raise RuntimeError(f"Ooz_Compress failed or returned empty result (code: {result})")
 
-        compressed_data = dst_buf.raw[:result]
-        compressed_len = len(compressed_data)
-
+            compressed_data = dst_buf.raw[:result]
+            compressed_len = len(compressed_data)
+            magic_bytes = b"PlM"
+            
         print(f"Compression successful, compressed size: {compressed_len:,} bytes")
 
+        print(f"File information (Compress):")
+        print(f"  Magic bytes: {magic_bytes.decode('ascii', errors='ignore')}")
+        print(f"  Save type: 0x{save_type:02X}")
+        print(f"  Compressed size: {compressed_len:,} bytes")
+        print(f"  Uncompressed size: {src_len:,} bytes")
+        print(f"  Hex dump: {compressed_data.hex()[:64]}")
+        
         # === Build .sav file header ===
         print("Building .sav file...")
         result = bytearray()
         result.extend(src_len.to_bytes(4, "little"))
         result.extend(compressed_len.to_bytes(4, "little"))
-        result.extend(b"PlM")
+        result.extend(magic_bytes)
         result.extend(bytes([save_type]))
         result.extend(compressed_data)
 
@@ -284,7 +297,7 @@ def main():
         
     try:
         # Create an instance of the handler. It will find libooz.dll in the same folder.
-        handler = OodleLib()
+        handler = OozLib()
         
         with open(input_file, "rb") as f_in:
             data = f_in.read()
