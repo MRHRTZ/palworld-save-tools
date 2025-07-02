@@ -2,13 +2,15 @@ import ctypes
 import os
 import sys
 import struct
+import hashlib
+import zlib
 
 from enum import IntEnum
 from typing import Tuple, Optional
 
 # Default compressor dan level
 OODLE_COMPRESSOR = 8  # Kraken
-OODLE_LEVEL = 6       # Optimal2
+OODLE_LEVEL = 4       # Normal
 
 class CtypesEnum(IntEnum):
     """A ctypes-compatible IntEnum superclass."""
@@ -126,7 +128,6 @@ class OodleLib:
         try:
             self.oodle_lib = ctypes.CDLL(lib_path)
             self._setup_oodle_functions()
-            print(f"Successfully loaded Oodle library: {lib_path}")
         except Exception as e:
             raise RuntimeError(f"Failed to load Oodle library: {e}")
 
@@ -153,18 +154,18 @@ class OodleLib:
         self.oodle_lib.OodleLZ_Decompress.restype = ctypes.c_long  # SINTa
 
         self.oodle_lib.OodleLZ_Compress.argtypes = (
-            Compressor,  # compressor
-            ctypes.POINTER(ctypes.c_char),  # rawBuf
-            ctypes.c_long,  # rawLen
-            ctypes.POINTER(ctypes.c_char),  # compBuf
-            CompressionLevel,  # level
-            ctypes.POINTER(CompressOptions),  # pOptions
-            ctypes.c_void_p,  # dictionaryBase
-            ctypes.c_void_p,  # lrm
+            ctypes.c_int,  # codec
+            ctypes.c_void_p,  # rawBuf
+            ctypes.c_int64,  # rawLen
+            ctypes.c_void_p,  # compBuf
+            ctypes.c_int,  # level
+            ctypes.c_void_p,  # pOptions
+            ctypes.c_int64,  # offsetOfDecodeBuffer
+            ctypes.c_int64,  # decBufSize
             ctypes.c_void_p,  # scratchMem
-            ctypes.c_long,  # scratchSize
+            ctypes.c_int64,  # scratchSize
         )
-        self.oodle_lib.OodleLZ_Compress.restype = ctypes.c_long
+        self.oodle_lib.OodleLZ_Compress.restype = ctypes.c_int64
         
         self.oodle_lib.OodleLZ_GetCompressedBufferSizeNeeded.argtypes = (
             ctypes.c_uint,  # rawSize
@@ -262,7 +263,7 @@ class OodleLib:
             self._parse_sav_header(sav_data)
         )
 
-        print(f"File information:")
+        print(f"File information (Decompress):")
         print(f"  Magic bytes: {magic.decode('ascii', errors='ignore')}")
         print(f"  Save type: 0x{save_type:02X}")
         print(f"  Compressed size: {compressed_len:,} bytes")
@@ -346,45 +347,54 @@ class OodleLib:
             RuntimeError: If compression fails"""
         src_len = len(gvas_data)
         if src_len == 0:
-            raise ValueError("Data input tidak boleh kosong.")
+            raise ValueError("Input GVAS data cannot be empty")
+        
+        if save_type == 0x32:
+            print("Force Zlib Compression")
+            compressed_data = zlib.compress(gvas_data)
+            compressed_len = len(compressed_data)
+            compressed_data = zlib.compress(compressed_data)
+            magic_bytes = b"PlZ"  # Zlib bytes
+        elif save_type == 0x31:
+            max_comp_len = self.oodle_lib.OodleLZ_GetCompressedBufferSizeNeeded(src_len)
+            comp_array = ctypes.create_string_buffer(max_comp_len)
 
-  
-        src_array = (ctypes.c_char * src_len).from_buffer_copy(gvas_data)
+            result = self.oodle_lib.OodleLZ_Compress(
+                OODLE_COMPRESSOR, # Compressor 
+                gvas_data, # rawBuf
+                src_len, # rawLen
+                comp_array, # compBuf
+                OODLE_LEVEL, # level
+                None, # pOptions
+                0,  # offsetOfDecodeBuffer
+                0,  # decBufSize
+                None,  # scratchMem
+                0,  # scratchSize
+            )
 
-        max_comp_len = self.oodle_lib.OodleLZ_GetCompressedBufferSizeNeeded(src_len)
-        comp_array = ctypes.create_string_buffer(max_comp_len)
+            if result <= 0:
+                raise RuntimeError(f"Oodle compression failed with code: {result}")
 
-        # CompressOptions default (optional)
-        compress_options = self.oodle_lib.OodleLZ_CompressOptions_GetDefault(
-            OODLE_COMPRESSOR,  # compressor
-            OODLE_LEVEL,       # lzLevel
-        )
-        compress_options.contents.seekChunkReset = True
-        compress_options.contents.seekChunkLen = 0x40000
-
-        compressed_len = self.oodle_lib.OodleLZ_Compress(
-            OODLE_COMPRESSOR,
-            src_array,
-            src_len,
-            comp_array,
-            OODLE_LEVEL,
-            compress_options,
-            ctypes.c_void_p(),
-            ctypes.c_void_p(),
-            ctypes.c_void_p(),
-            0,  # scratchSize
-        )
-
-        if compressed_len <= 0:
-            raise RuntimeError(f"Oodle compression failed with code: {compressed_len}")
-
+            compressed_data = comp_array.raw[:result]
+            compressed_len = len(compressed_data)
+            magic_bytes = b"PlM"  # Oodle bytes
+        else:
+            raise ValueError(f"Unsupported save type: 0x{save_type:02X}")
+        
+        print(f"File information (Compress):")
+        print(f"  Magic bytes: {magic_bytes.decode('ascii', errors='ignore')}")
+        print(f"  Save type: 0x{save_type:02X}")
+        print(f"  Compressed size: {compressed_len:,} bytes")
+        print(f"  Uncompressed size: {src_len:,} bytes")
+        print(f"  Hex dump: {compressed_data.hex()[:64]}")
+        
         # create header SAV
         result = bytearray()
         result.extend(src_len.to_bytes(4, "little"))
         result.extend(compressed_len.to_bytes(4, "little"))
-        result.extend(b"PlM")
-        result.append(save_type)
-        result.extend(comp_array[:compressed_len])
+        result.extend(magic_bytes)
+        result.extend(bytes([save_type]))
+        result.extend(compressed_data)
 
         return bytes(result)
 
