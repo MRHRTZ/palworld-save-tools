@@ -1,8 +1,9 @@
 import zlib
 
-from palworld_save_tools.oodle_lib import OodleLib
+from palworld_save_tools.ooz_lib import OozLib
+from palworld_save_tools.oodle_lib import OodleLib # to be deleted soon, after libooz stable
 
-MAGIC_BYTES = b"PlZ"
+MAGIC_BYTES = [b"PlZ", b"PlM"]
 
 
 def decompress_sav_to_gvas(data: bytes, zlib: bool = False) -> tuple[bytes, int]:
@@ -31,7 +32,7 @@ def decompress_sav_to_gvas_with_zlib(data: bytes) -> tuple[bytes, int]:
         magic_bytes = data[20:23]
         save_type = data[23]
         data_start_offset = 24
-    if magic_bytes != MAGIC_BYTES:
+    if magic_bytes not in MAGIC_BYTES:
         if (
             magic_bytes == b"\x00\x00\x00"
             and uncompressed_len == 0
