@@ -24,7 +24,6 @@ def decode_bytes(
     data: dict[str, Any] = {}
     data["research_info"] = reader.tarray(lab_research_rep_info_read)
     data["current_research_id"] = reader.fstring()
-    data["trailing_bytes"] = reader.byte_list(4)
     if not reader.eof():
         data["trailing_bytes"] = [int(b) for b in reader.read_to_end()]
     return data

@@ -2,6 +2,7 @@ import json
 from typing import Any, Sequence
 
 from palworld_save_tools.archive import *
+from palworld_save_tools.json_tools import CustomEncoder
 from palworld_save_tools.rawdata.common import (
     pal_item_and_num_read,
     pal_item_and_slot_writer,
@@ -383,8 +384,8 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "dimensionpalstorage": "PalMapObjectDimensionPalStorageModel",
     "zabuton": "PalBuildObject",
     "headstone": "PalMapObjectSignboardModel",
-    "treasurebox_fishingjunk_requiredlonghold": "PalMapObjectTreasureBoxModel",
 }
+
 
 def decode_bytes(
     parent_reader: FArchiveReader, m_bytes: Sequence[int], object_id: str
@@ -564,8 +565,6 @@ def decode_bytes(
             | "PalMapObjectDamagedScarecrowModel"
         ):
             data["trailing_bytes"] = reader.byte_list(4)
-        case "PalMapObjectDimensionPalStorageModel":
-            data["trailing_bytes"] = reader.byte_list(12)
         case _:
             print(
                 f"Warning: Unknown map object concrete model {map_object_concrete_model}, skipping"
@@ -697,11 +696,13 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.guid(p["last_modified_player_uid"])
             writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectTorchModel":
+            writer.i32(p["ignition_minutes"])
+            writer.i64(p["extinction_date_time"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectPalEggModel":
             writer.u32(1 if p["auto_picked_up"] else 0)
             writer.guid(p["pickupdable_player_uid"])
             writer.i64(p["remove_pickup_guard_timer_handle"])
-        case "PalMapObjectPalEggModel":
-            writer.u32(p["long_hold_interact_duration"])
         case "PalMapObjectBaseCampPoint":
             writer.write(bytes(p["leading_bytes"]))
             writer.guid(p["base_camp_id"])

@@ -412,6 +412,11 @@ class FArchiveReader:
                 "id": self.optional_guid(),
                 "value": self.u32(),
             }
+        elif type_name == "UInt64Property":
+            value = {
+                "id": self.optional_guid(),
+                "value": self.u64(),
+            }
         elif type_name == "Int64Property":
             value = {
                 "id": self.optional_guid(),
@@ -508,6 +513,17 @@ class FArchiveReader:
                 "id": _id,
                 "value": values,
             }
+        elif type_name == "SetProperty":
+            set_type = self.fstring()
+            _id = self.optional_guid()
+            self.u32()
+            count = self.u32()
+
+            value = {
+                "set_type": set_type,
+                "id": _id,
+                "value": [self.properties_until_end() for _ in range(count)],
+            }
         else:
             raise Exception(f"Unknown type: {type_name} ({path})")
         value["type"] = type_name
@@ -524,6 +540,10 @@ class FArchiveReader:
             return self.i32()
         elif type_name == "BoolProperty":
             return self.bool()
+        elif type_name == "UInt32Property":
+            return self.u32()
+        elif type_name == "StrProperty":
+            return self.fstring()
         else:
             raise Exception(f"Unknown property value type: {type_name} ({path})")
 
@@ -863,6 +883,10 @@ class FArchiveWriter:
             self.optional_guid(property.get("id", None))
             self.u32(property["value"])
             size = 4
+        elif property_type == "UInt64Property":
+            self.optional_guid(property.get("id", None))
+            self.u64(property["value"])
+            size = 8
         elif property_type == "Int64Property":
             self.optional_guid(property.get("id", None))
             self.i64(property["value"])
@@ -924,6 +948,20 @@ class FArchiveWriter:
             map_buf = map_writer.bytes()
             size = len(map_buf)
             self.write(map_buf)
+        elif property_type == "SetProperty":
+            self.fstring(property["set_type"])
+            self.optional_guid(property.get("id", None))
+            set_writer = self.copy()
+            set_writer.u32(0)
+            set_writer.u32(len(property["value"]))
+
+            for element in property["value"]:
+                set_writer.properties(element)
+
+            set_bytes = set_writer.bytes()
+            self.write(set_bytes)
+
+            size = len(set_bytes)
         else:
             raise Exception(f"Unknown property type: {property_type}")
         return size
@@ -966,6 +1004,10 @@ class FArchiveWriter:
             self.i32(value)
         elif type_name == "BoolProperty":
             self.bool(value)
+        elif type_name == "UInt32Property":
+            self.u32(value)
+        elif type_name == "StrProperty":
+            self.fstring(value)
         else:
             raise Exception(f"Unknown property value type: {type_name}")
 
