@@ -70,6 +70,7 @@ class OozLib(Compressor):
         print(f"  Save type: 0x{save_type:02X}")
         print(f"  Compressed size: {compressed_len:,} bytes")
         print(f"  Uncompressed size: {uncompressed_len:,} bytes")
+        print(f"  Hex dump: {compressed_data.hex()[:64]}")
         
         sav_data = self.build_sav(
             compressed_data,
