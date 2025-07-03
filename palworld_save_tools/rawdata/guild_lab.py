@@ -24,6 +24,9 @@ def decode_bytes(
     data: dict[str, Any] = {}
     data["research_info"] = reader.tarray(lab_research_rep_info_read)
     data["current_research_id"] = reader.fstring()
+    data["trailing_bytes"] = reader.byte_list(4)
+    if not reader.eof():
+        data["trailing_bytes"] = [int(b) for b in reader.read_to_end()]
     return data
 
 
@@ -45,6 +48,7 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
     writer = FArchiveWriter()
     writer.tarray(lab_research_rep_info_writer, p["research_info"])
     writer.fstring(p["current_research_id"])
-
+    if "trailing_bytes" in p:
+        writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()
     return encoded_bytes

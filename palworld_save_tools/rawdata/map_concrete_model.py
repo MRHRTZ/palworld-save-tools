@@ -9,6 +9,16 @@ from palworld_save_tools.rawdata.common import (
     pal_item_booth_trade_info_writer,
 )
 
+def pal_instance_id_reader(reader: FArchiveReader) -> dict[str, Any]:
+    return {
+        "player_uid": reader.guid(),
+        "instance_id": reader.guid(),
+    }
+
+def pal_instance_id_writer(writer: FArchiveWriter, p: dict[str, Any]) -> None:
+    writer.guid(p["player_uid"])
+    writer.guid(p["instance_id"])
+
 # Generate using extract_map_object_concrete_classes.py
 MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "droppedcharacter": "PalMapObjectDeathDroppedCharacterModel",
@@ -371,17 +381,10 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "glass_doorwall": "PalMapObjectDoorModel",
     "zaisu": "PalMapObjectPlayerSitModel",
     "dimensionpalstorage": "PalMapObjectDimensionPalStorageModel",
+    "zabuton": "PalBuildObject",
+    "headstone": "PalMapObjectSignboardModel",
+    "treasurebox_fishingjunk_requiredlonghold": "PalMapObjectTreasureBoxModel",
 }
-NO_OP_TYPES = set(
-    [
-        "Default_PalMapObjectConcreteModelBase",
-        "PalMapObjectDefenseWaitModel",
-        "PalMapObjectDisplayCharacterModel",
-        "PalMapObjectDamagedScarecrowModel",
-        "PalMapObjectHeatSourceModel",
-    ]
-)
-
 
 def decode_bytes(
     parent_reader: FArchiveReader, m_bytes: Sequence[int], object_id: str
@@ -404,8 +407,6 @@ def decode_bytes(
     ]
     data["concrete_model_type"] = map_object_concrete_model
     match map_object_concrete_model:
-        case model if model in NO_OP_TYPES:
-            pass
         case "PalMapObjectCharacterTeamMissionModel":
             data["mission_id"] = reader.fstring()
             data["state"] = reader.byte()
@@ -508,26 +509,32 @@ def decode_bytes(
             data["interact_player_action_type"] = reader.byte()
             data["is_lock_riding"] = reader.byte()
         case "PalMapObjectBreedFarmModel":
-            data["spawned_egg_instance_ids"] = reader.tarray(lambda r: r.guid())
-            data["breed_required_real_time"] = reader.float()
-            data["breed_progress_time"] = reader.float()
+            data["leading_bytes"] = reader.byte_list(4)
+            data["spawned_egg_instance_ids"] = reader.tarray(uuid_reader)
+            data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectSignboardModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["signboard_text"] = reader.fstring()
-            if not reader.eof():
-                data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
+            data["last_modified_player_uid"] = reader.guid()
+            data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectTorchModel":
             data["ignition_minutes"] = reader.i32()
             data["extinction_date_time"] = reader.i64()
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectPalEggModel":
-            data["long_hold_interact_duration"] = reader.float()
+            data["auto_picked_up"] = reader.u32() > 0
+            data["pickupdable_player_uid"] = reader.guid()
+            data["remove_pickup_guard_timer_handle"] = reader.i64()
         case "PalMapObjectBaseCampPoint":
             data["leading_bytes"] = reader.byte_list(4)
             data["base_camp_id"] = reader.guid()
             data["trailing_bytes"] = reader.byte_list(4)
-        case "PalMapObjectItemChestModel":
+        case "PalMapObjectItemChestModel" | "PalMapObjectItemChest_AffectCorruption":
+            data["leading_bytes"] = reader.byte_list(4)
             data["private_lock_player_uid"] = reader.guid()
-            data["trailing_bytes"] = reader.byte_list(8)
+            data["trailing_bytes"] = reader.byte_list(4)
+        case "PalMapObjectDimensionPalStorageModel":
+            data["trailing_bytes"] = reader.byte_list(12)
         case (
             "PalMapObjectPlayerBedModel"
             | "PalBuildObject"
@@ -550,6 +557,11 @@ def decode_bytes(
             | "PalMapObjectPlayerSitModel"
             | "PalMapObjectBaseCampWorkerDirectorModel"
             | "PalMapObjectPalMedicineBoxModel"
+            | "PalMapObjectDefenseWaitModel"
+            | "PalMapObjectHeatSourceModel"
+            | "PalMapObjectDisplayCharacterModel"
+            | "Default_PalMapObjectConcreteModelBase"
+            | "PalMapObjectDamagedScarecrowModel"
         ):
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectDimensionPalStorageModel":
@@ -580,8 +592,6 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
     writer.guid(p["model_instance_id"])
 
     match map_object_concrete_model:
-        case model if model in NO_OP_TYPES:
-            pass
         case "PalMapObjectCharacterTeamMissionModel":
             writer.fstring(p["mission_id"])
             writer.byte(p["state"])
@@ -592,7 +602,7 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.fstring(p["skill_fruits_id"])
             writer.byte(p["current_state"])
             writer.float(p["progress_rate"])
-            writer.float(p["trailing_bytes"])
+            writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectSupplyStorageModel":
             writer.i64(p["created_at_real_time"])
             writer.write(bytes(p["trailing_bytes"]))
@@ -678,22 +688,26 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.byte(p["interact_player_action_type"])
             writer.byte(p["is_lock_riding"])
         case "PalMapObjectBreedFarmModel":
-            writer.tarray(lambda w, x: w.guid(x), p["spawned_egg_instance_ids"])
-            writer.float(p["breed_required_real_time"])
-            writer.float(p["breed_progress_time"])
-        case "PalMapObjectSignboardModel":
-            writer.fstring(p["signboard_text"])
-        case "PalMapObjectTorchModel":
-            writer.i32(p["ignition_minutes"])
-            writer.i64(p["extinction_date_time"])
+            writer.write(bytes(p["leading_bytes"]))
+            writer.tarray(uuid_writer, p["spawned_egg_instance_ids"])
             writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectSignboardModel":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.fstring(p["signboard_text"])
+            writer.guid(p["last_modified_player_uid"])
+            writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectTorchModel":
+            writer.u32(1 if p["auto_picked_up"] else 0)
+            writer.guid(p["pickupdable_player_uid"])
+            writer.i64(p["remove_pickup_guard_timer_handle"])
         case "PalMapObjectPalEggModel":
             writer.u32(p["long_hold_interact_duration"])
         case "PalMapObjectBaseCampPoint":
             writer.write(bytes(p["leading_bytes"]))
             writer.guid(p["base_camp_id"])
             writer.write(bytes(p["trailing_bytes"]))
-        case "PalMapObjectItemChestModel":
+        case "PalMapObjectItemChestModel" | "PalMapObjectItemChest_AffectCorruption":
+            writer.write(bytes(p["leading_bytes"]))
             writer.guid(p["private_lock_player_uid"])
             writer.write(bytes(p["trailing_bytes"]))
         case (
@@ -719,6 +733,11 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             | "PalMapObjectDimensionPalStorageModel"
             | "PalMapObjectBaseCampWorkerDirectorModel"
             | "PalMapObjectPalMedicineBoxModel"
+            | "PalMapObjectDefenseWaitModel"
+            | "PalMapObjectHeatSourceModel"
+            | "PalMapObjectDisplayCharacterModel"
+            | "Default_PalMapObjectConcreteModelBase"
+            | "PalMapObjectDamagedScarecrowModel"
         ):
             writer.write(bytes(p["trailing_bytes"]))
         case _:

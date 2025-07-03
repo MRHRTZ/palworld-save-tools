@@ -78,7 +78,9 @@ def decode_bytes(
         data["can_steal_assign"] = reader.u32() > 0
         match work_type:
             case "EPalWorkableType::Defense":
+                data["leading_bytes"] = reader.byte_list(4)
                 data["defense_combat_type"] = reader.byte()
+                data["trailing_bytes"] = reader.byte_list(4)
             case "EPalWorkableType::Progress":
                 data["required_work_amount"] = reader.float()
                 data["current_work_amount"] = reader.float()
@@ -186,6 +188,10 @@ def encode(
 def encode_bytes(p: dict[str, Any], work_type: str) -> bytes:
     writer = FArchiveWriter()
 
+    if "values" in p:
+        writer.write(bytes(p["values"]))
+        return writer.bytes()
+
     # Handle base serialization
     if work_type in WORK_BASE_TYPES:
         writer.guid(p["id"])
@@ -215,7 +221,9 @@ def encode_bytes(p: dict[str, Any], work_type: str) -> bytes:
         writer.u32(1 if p["can_steal_assign"] else 0)
         match work_type:
             case "EPalWorkableType::Defense":
+                writer.write(bytes(p["leading_bytes"]))
                 writer.byte(p["defense_combat_type"])
+                writer.write(bytes(p["trailing_bytes"]))
             case "EPalWorkableType::Progress":
                 writer.float(p["required_work_amount"])
                 writer.float(p["current_work_amount"])
