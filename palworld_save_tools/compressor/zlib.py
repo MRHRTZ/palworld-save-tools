@@ -22,14 +22,16 @@ class Zlib(Compressor):
             raise Exception(
                 f"Unhandled compression type: 0x{save_type:02X}, only 0x32 (double zlib) is supported"
             )
-
+        compressed_data = zlib.compress(compressed_data)
         magic_bytes = self._get_magic(save_type)
         
-        print(f"File information (Decompress):")
+        print(f"File information (Compress):")
         print(f"  Magic bytes: {magic_bytes.decode('ascii', errors='ignore')}")
         print(f"  Save type: 0x{save_type:02X}")
         print(f"  Compressed size: {compressed_len:,} bytes")
         print(f"  Uncompressed size: {uncompressed_len:,} bytes")
+        print(f"  Hex dump: {compressed_data.hex()[:64]}")
+        
         
         sav_data = self.build_sav(        
             compressed_data,
