@@ -1,6 +1,5 @@
 import ooz
 
-print(dir(ooz))
 from palworld_save_tools.compressor import (
     Compressor,
     SaveType
