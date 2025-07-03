@@ -20,8 +20,6 @@ def decompress_sav_to_gvas(data: bytes, zlib: bool = False) -> tuple[bytes, int]
 def compress_gvas_to_sav(data: bytes, save_type: int, zlib: bool = False) -> bytes:
     format = compressor.check_savtype_format(save_type)
 
-    print(f"Compressing data with save type: 0x{save_type:02X} (format: {format}) {zlib}")
-    
     if zlib:
         # Force using zlib regardless of format
         return z_lib.compress(data, save_type)
