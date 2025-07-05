@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 
 from palworld_save_tools.compressor import (
     Compressor,
@@ -45,18 +46,19 @@ class OozLib(Compressor):
         """
         lib_path = ''
 
-        # Windows
         if sys.platform == 'win32':
             lib_path = 'windows'
-        # linux arm64
-        elif sys.platform == 'linux' and sys.maxsize > 2**32:
-            lib_path = 'linux_arm64'
-        # linux x86_64
-        elif sys.platform == 'linux' and sys.maxsize <= 2**32:
-            lib_path = 'linux_x86_64'
+        elif sys.platform == 'linux':
+            arch = platform.machine().lower()
+            if 'aarch64' in arch or 'arm' in arch:
+                lib_path = 'linux_arm64'
+            elif 'x86_64' in arch or 'amd64' in arch:
+                lib_path = 'linux_x86_64'
+            else:
+                raise Exception(f"Unsupported Linux architecture: {arch}")
         else:
             raise Exception(f"Unsupported platform: {sys.platform}")
-
+        
         local_ooz_path = os.path.join(os.path.dirname(__file__), '..', 'lib', lib_path)
         if os.path.isdir(local_ooz_path):
             sys.path.insert(0, local_ooz_path)
