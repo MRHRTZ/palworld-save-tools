@@ -75,7 +75,7 @@ class OozLib(Compressor):
             import ooz
         except ImportError:
             raise ImportError(
-                f"Failed to import 'ooz' module. Make sure the Ooz library exists in {local_ooz_path} or latest pyooz is installed in your Python environment. Install using 'pip install git+https://github.com/MRHRTZ/palworld-save-tools.git'"
+                f"Failed to import 'ooz' module. Make sure the Ooz library exists in {local_ooz_path} or latest pyooz is installed in your Python environment. Install using 'pip install git+https://github.com/MRHRTZ/pyooz.git'"
             )
         
         self.ooz = ooz
