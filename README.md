@@ -1,7 +1,7 @@
 # palworld-save-tools
 Tools for converting Palworld .sav files to JSON and back.
 
-This tool currently supports additional parsing of the following data in the `Level.sav` not handled by `uesave` or other non-Palworld aware Unreal save editors, emcompassing almost all known data structures as of Palworld v0.1.4.0:
+This tool currently supports additional parsing of the following data in the `Level.sav` not handled by `uesave` or other non-Palworld aware Unreal save editors, emcompassing almost all known data structures as of Palworld v0.1.6.0:
 
 1. `GroupSaveDataMap`
     - Groups such as in-game organizations and guilds
@@ -54,8 +54,8 @@ Additional command line arguments:
 1. `--output`: Override the default output path
 1. `--minify-json`: Minify output JSON to help speed up processing by other tools consuming JSON
 1. `--force`: Overwrite output files if they exist without prompting
+1. `--library`: Override default compression library used to convert JSON files to SAV files.
 1. `--custom-properties`: Comma-separated list of paths from [paltypes.py](./palworld_save_tools/paltypes.py) to decode.
-1. `--library`: Override default compression library used to convert JSON files to SAV files
 This can be used to ignore processing of types that are not of interest.
 For example `--custom-properties .worldSaveData.GroupSaveDataMap,.worldSaveData.CharacterSaveParameterMap.Value.RawData` will only parse guild data and character data.
 
@@ -77,8 +77,6 @@ pip install git+https://github.com/MRHRTZ/palworld-save-tools.git
 
 ## Development philosophy
 
-- No additional dependencies. Scripts should run with a default install of Python. Distributing binary builds of Python is laden with AV false positives.
-    - Optional dependencies are allowed, for example switching out the stdlib's JSON library for something more performant.
 - Correctness of the conversion process is more important than performance. SAV > JSON > SAV should yield bit-for-bit identical files (pre-compression).
 
 ## Projects that make use of palworld-save-tools
