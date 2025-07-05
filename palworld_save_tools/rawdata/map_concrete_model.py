@@ -10,15 +10,18 @@ from palworld_save_tools.rawdata.common import (
     pal_item_booth_trade_info_writer,
 )
 
+
 def pal_instance_id_reader(reader: FArchiveReader) -> dict[str, Any]:
     return {
         "player_uid": reader.guid(),
         "instance_id": reader.guid(),
     }
 
+
 def pal_instance_id_writer(writer: FArchiveWriter, p: dict[str, Any]) -> None:
     writer.guid(p["player_uid"])
     writer.guid(p["instance_id"])
+
 
 # Generate using extract_map_object_concrete_classes.py
 MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
@@ -465,13 +468,17 @@ def decode_bytes(
             if not reader.eof():
                 data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
         case "PalMapObjectDeathPenaltyStorageModel":
+            data["auto_destroy_if_empty"] = reader.u32() > 0
             data["owner_player_uid"] = reader.guid()
+            data["created_at"] = reader.u64()
             if not reader.eof():
-                data["created_at"] = reader.u64()
+                data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectDefenseBulletLauncherModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["remaining_bullets"] = reader.i32()
             data["magazine_size"] = reader.i32()
             data["bullet_item_name"] = reader.fstring()
+            data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectGenerateEnergyModel":
             data["generate_energy_rate_by_worker"] = reader.float()
             data["stored_energy_amount"] = reader.float()
@@ -492,8 +499,10 @@ def decode_bytes(
         case "PalMapObjectShippingItemModel":
             data["shipping_hours"] = reader.tarray(lambda r: r.i32())
         case "PalMapObjectProductItemModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["work_speed_additional_rate"] = reader.float()
             data["product_item_id"] = reader.fstring()
+            data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectRecoverOtomoModel":
             data["recover_amount_by_sec"] = reader.float()
         case "PalMapObjectHatchingEggModel":
@@ -644,13 +653,17 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             if "unknown_bytes" in p:
                 writer.write(bytes(p["unknown_bytes"]))
         case "PalMapObjectDeathPenaltyStorageModel":
+            writer.u32(1 if p["auto_destroy_if_empty"] else 0)
             writer.guid(p["owner_player_uid"])
-            if "created_at" in p:
-                writer.u64(p["created_at"])
+            writer.u64(p["created_at"])
+            if "trailing_bytes" in p:
+                writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectDefenseBulletLauncherModel":
+            writer.write(bytes(p["leading_bytes"]))
             writer.i32(p["remaining_bullets"])
             writer.i32(p["magazine_size"])
             writer.fstring(p["bullet_item_name"])
+            writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectGenerateEnergyModel":
             writer.float(p["generate_energy_rate_by_worker"])
             writer.float(p["stored_energy_amount"])
@@ -669,8 +682,10 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
         case "PalMapObjectShippingItemModel":
             writer.tarray(lambda w, x: w.i32(x), p["shipping_hours"])
         case "PalMapObjectProductItemModel":
+            writer.write(bytes(p["leading_bytes"]))
             writer.float(p["work_speed_additional_rate"])
             writer.fstring(p["product_item_id"])
+            writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectRecoverOtomoModel":
             writer.float(p["recover_amount_by_sec"])
         case "PalMapObjectHatchingEggModel":

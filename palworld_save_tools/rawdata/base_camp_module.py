@@ -74,6 +74,7 @@ def decode_bytes(
             data["transport_item_character_infos"] = reader.tarray(
                 transport_item_character_info_reader
             )
+            data["trailing_bytes"] = reader.byte_list(4)
         except Exception as e:
             print(
                 f"Warning: Failed to decode transport item director, please report this: {e} ({bytes(b_bytes)!r})"
@@ -89,11 +90,14 @@ def decode_bytes(
             )
             return {"values": b_bytes}
     else:
-        print(f"Warning: Unknown base camp module type {module_type}, skipping")
+        print(
+            f"Warning: Unknown base camp module type {module_type}, falling back to raw bytes"
+        )
         return {"values": b_bytes}
 
     if not reader.eof():
-        print(f"Warning: EOF not reached for {module_type}")
+        print(f"Warning: EOF not reached for {module_type}, falling back to raw bytes")
+        return {"values": b_bytes}
 
     return data
 
@@ -133,12 +137,17 @@ def module_passive_effect_writer(writer: FArchiveWriter, p: dict[str, Any]) -> N
 def encode_bytes(p: dict[str, Any], module_type: str) -> bytes:
     writer = FArchiveWriter()
 
+    if "values" in p:
+        writer.write(bytes(p["values"]))
+        return writer.bytes()
+
     if module_type in NO_OP_TYPES:
         pass
     elif module_type == "EPalBaseCampModuleType::TransportItemDirector":
         writer.tarray(
             transport_item_character_info_writer, p["transport_item_character_infos"]
         )
+        writer.write(bytes(p["trailing_bytes"]))
     elif module_type == "EPalBaseCampModuleType::PassiveEffect":
         writer.tarray(module_passive_effect_writer, p["passive_effects"])
 
