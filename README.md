@@ -27,7 +27,7 @@ This tool currently supports additional parsing of the following data in the `Le
 
 ### Windows GUI steps
 
-1. Download the latest release from [https://github.com/cheahjs/palworld-save-tools/releases/latest].
+1. Download the latest release from [https://github.com/MRHRTZ/palworld-save-tools/releases/latest].
 1. Unzip the file into a folder.
 1. Drag and drop your `.sav` file (for Steam on Windows, these are located at `%LOCALAPPDATA%\Pal\Saved\SaveGames\<SteamID>\<SaveID>`) onto `convert.cmd` to convert the file into JSON.
 1. To convert the `.sav.json` file back into a `.sav` file, drag and drop your `.sav.json` file onto `convert.cmd`.
@@ -37,7 +37,7 @@ This tool currently supports additional parsing of the following data in the `Le
 
 ### Terminal
 
-1. Download the latest release from [https://github.com/cheahjs/palworld-save-tools/releases/latest].
+1. Download the latest release from [https://github.com/MRHRTZ/palworld-save-tools/releases/latest].
 1. Unzip the file into a folder.
 1. Open a terminal in the folder you just unzipped.
 1. Depending on how Python is installed, the next steps should use either `python`, `python3`, or `py`.
@@ -55,6 +55,7 @@ Additional command line arguments:
 1. `--minify-json`: Minify output JSON to help speed up processing by other tools consuming JSON
 1. `--force`: Overwrite output files if they exist without prompting
 1. `--custom-properties`: Comma-separated list of paths from [paltypes.py](./palworld_save_tools/paltypes.py) to decode.
+1. `--library`: Override default compression library used to convert JSON files to SAV files
 This can be used to ignore processing of types that are not of interest.
 For example `--custom-properties .worldSaveData.GroupSaveDataMap,.worldSaveData.CharacterSaveParameterMap.Value.RawData` will only parse guild data and character data.
 
@@ -63,7 +64,7 @@ For example `--custom-properties .worldSaveData.GroupSaveDataMap,.worldSaveData.
 This library is available on PyPi, and can be installed with
 
 ```shell
-pip install palworld-save-tools
+pip install git+https://github.com/MRHRTZ/palworld-save-tools.git
 ```
 
 > [!NOTE]
