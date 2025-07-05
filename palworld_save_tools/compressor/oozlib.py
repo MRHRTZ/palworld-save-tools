@@ -1,4 +1,5 @@
-import ooz
+import os
+import sys
 
 from palworld_save_tools.compressor import (
     Compressor,
@@ -35,6 +36,39 @@ class OozLib(Compressor):
         OozLib is an open source library for compression and decompression using Oodle.
         """
         self.SAFE_SPACE_PADDING = 128
+        self.__load_ooz()
+        
+    def __load_ooz(self):
+        """
+        Load the Ooz library dynamically based on the platform.
+        This is done to ensure compatibility with different operating systems.
+        """
+        lib_path = ''
+
+        # Windows
+        if sys.platform == 'win32':
+            lib_path = 'windows'
+        # linux arm64
+        elif sys.platform == 'linux' and sys.maxsize > 2**32:
+            lib_path = 'linux_arm64'
+        # linux x86_64
+        elif sys.platform == 'linux' and sys.maxsize <= 2**32:
+            lib_path = 'linux_x86_64'
+        else:
+            raise Exception(f"Unsupported platform: {sys.platform}")
+
+        local_ooz_path = os.path.join(os.path.dirname(__file__), '..', 'lib', lib_path)
+        if os.path.isdir(local_ooz_path):
+            sys.path.insert(0, local_ooz_path)
+
+        try:
+            import ooz
+        except ImportError:
+            raise ImportError(
+                f"Failed to import 'ooz' module. Make sure the Ooz library exists in {local_ooz_path}"
+            )
+        
+        self.ooz = ooz
         
     def compress(self, data: bytes, save_type: int) -> bytes:
         print("\nStarting compression process with libooz...")
@@ -50,7 +84,7 @@ class OozLib(Compressor):
             
         print("Compressing data...")
         
-        compressed_data = ooz.compress(
+        compressed_data = self.ooz.compress(
             OodleCompressor.Kraken, 
             OodleLevel.Normal,
             data,
@@ -70,6 +104,7 @@ class OozLib(Compressor):
         print(f"  Save type: 0x{save_type:02X}")
         print(f"  Compressed size: {compressed_len:,} bytes")
         print(f"  Uncompressed size: {uncompressed_len:,} bytes")
+        print(f"  Hex dump: {compressed_data.hex()[:64]}")
         
         sav_data = self.build_sav(
             compressed_data,
@@ -109,7 +144,7 @@ class OozLib(Compressor):
         print("Detected PLM format (Oodle), starting decompression...")
     
         compressed_data = data[data_offset : data_offset + compressed_len]
-        decompressed = ooz.decompress(compressed_data, uncompressed_len)
+        decompressed = self.ooz.decompress(compressed_data, uncompressed_len)
         
         if len(decompressed) != uncompressed_len:
             raise ValueError(
