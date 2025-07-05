@@ -346,6 +346,7 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "treasurebox_ice": "PalMapObjectTreasureBoxModel",
     "treasurebox_fire": "PalMapObjectTreasureBoxModel",
     "treasurebox_water": "PalMapObjectTreasureBoxModel",
+    "treasurebox_fishingjunk_requiredlonghold": "PalMapObjectTreasureBoxModel",
     "treasurebox_fishingjunk_requiredlonghold2": "PalMapObjectTreasureBoxModel",
     "treasurebox_requiredlonghold": "PalMapObjectTreasureBoxModel",
     "meteordrop_damagable": "PalMapObjectItemDropOnDamagModel",
