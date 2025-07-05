@@ -56,6 +56,14 @@ class OozLib(Compressor):
                 lib_path = 'linux_x86_64'
             else:
                 raise Exception(f"Unsupported Linux architecture: {arch}")
+        elif sys.platform == 'darwin':
+            arch = platform.machine().lower()
+            if 'arm64' in arch:
+                lib_path = 'mac_arm64'
+            elif 'x86_64' in arch:
+                lib_path = 'mac_x86_64'
+            else:
+                raise Exception(f"Unsupported Mac architecture: {arch}")
         else:
             raise Exception(f"Unsupported platform: {sys.platform}")
         
