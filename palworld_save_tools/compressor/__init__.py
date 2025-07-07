@@ -9,7 +9,7 @@ class SaveType:
 
     @staticmethod
     def is_valid(save_type: int) -> bool:
-        return save_type in (SaveType.PLZ, SaveType.PLM)
+        return save_type in (SaveType.PLZ, SaveType.PLM, SaveType.CNK)
 
 class MagicBytes:
     CNK = b"CNK"  # Zlib magic on xbox
@@ -54,6 +54,12 @@ class Compressor():
         )[0]
         magic = sav_data[header_offset + 8 : header_offset + 11]
         save_type = sav_data[header_offset + 11]
+        
+        if not MagicBytes.is_valid(magic):
+            raise ValueError(f"Invalid magic bytes: {magic!r}")
+        
+        if not SaveType.is_valid(save_type):
+            raise ValueError(f"Invalid save type: {save_type}")
 
         return uncompressed_len, compressed_len, magic, save_type, data_offset
 
