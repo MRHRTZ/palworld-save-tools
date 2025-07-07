@@ -3,6 +3,7 @@ import struct
 from typing import Tuple
 
 class SaveType:
+    CNK = 0x30  # Zlib compressed on xbox
     PLM = 0x31  # Oodle compressed
     PLZ = 0x32  # Zlib compressed
 
@@ -11,12 +12,13 @@ class SaveType:
         return save_type in (SaveType.PLZ, SaveType.PLM)
 
 class MagicBytes:
+    CNK = b"CNK"  # Zlib magic on xbox
     PLZ = b"PlZ"  # Zlib magic
     PLM = b"PlM"  # Oodle magic
 
     @staticmethod
     def is_valid(magic: bytes) -> bool:
-        return magic in (MagicBytes.PLZ, MagicBytes.PLM)
+        return magic in (MagicBytes.PLZ, MagicBytes.PLM, MagicBytes.CNK)
     
 class Compressor():
     def __init__(self):
@@ -33,8 +35,10 @@ class Compressor():
         if len(sav_data) < 24:
             raise ValueError("File too small to parse header")
 
+        first_magic = sav_data[8:11]
+        
         # Determine header offset and data offset
-        if sav_data.startswith(b"CNK"):
+        if first_magic == MagicBytes.CNK:
             header_offset = 12
             data_offset = 24
         else:
@@ -55,9 +59,11 @@ class Compressor():
 
     def _get_magic(self, save_type: int) -> bytes:
         if save_type == SaveType.PLZ:
-            return b"PlZ"
+            return MagicBytes.PLZ
         elif save_type == SaveType.PLM:
-            return b"PlM"
+            return MagicBytes.PLM
+        elif save_type == SaveType.CNK:
+            return MagicBytes.CNK
     
     def check_savtype_format(self, save_type: int) -> str:
         if save_type == SaveType.PLM:
@@ -79,7 +85,7 @@ class Compressor():
         print(f"Checking SAV format, magic bytes: {magic!r}")
         if magic == MagicBytes.PLM:
             return 1
-        elif magic == MagicBytes.PLZ:
+        elif magic == MagicBytes.PLZ or magic == MagicBytes.CNK:
             return 0
         else:
             return -1

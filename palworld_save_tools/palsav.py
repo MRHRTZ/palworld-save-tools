@@ -7,7 +7,7 @@ oozlib = OozLib()
 z_lib = Zlib()
 
         
-def decompress_sav_to_gvas(data: bytes, zlib: bool = False) -> tuple[bytes, int]:
+def decompress_sav_to_gvas(data: bytes) -> tuple[bytes, int]:
     format = compressor.check_sav_format(data)
     
     if format == 0:
