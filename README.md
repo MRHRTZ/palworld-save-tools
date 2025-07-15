@@ -22,7 +22,7 @@ This tool currently supports additional parsing of the following data in the `Le
 
 ### Prerequisites
 
-1. Python 3.9 or newer.
+1. Python 3.10 or newer.
     - Windows users: You can install [Python 3.12 from the Microsoft Store](https://apps.microsoft.com/detail/9NCVDN91XZQP) or from [python.org](https://www.python.org/)
 
 ### Windows GUI steps
