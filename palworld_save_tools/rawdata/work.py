@@ -20,6 +20,7 @@ WORK_BASE_TYPES = set(
         "EPalWorkableType::OnlyJoinAndWalkAround",
         "EPalWorkableType::RemoveMapObjectEffect",
         "EPalWorkableType::MonsterFarm",
+        "EPalWorkableType::FishPond",
     ]
 )
 
@@ -102,6 +103,12 @@ def decode_bytes(
                 | "EPalWorkableType::Booth"
             ):
                 data["required_work_amount"] = reader.float()
+            case "EPalWorkableType::FishPond":
+                data["leading_bytes"] = reader.byte_list(4)
+                data["required_work_amount"] = reader.float()
+                data["unknown_bytes"] = reader.byte_list(5)
+                data["current_work_amount"] = reader.float()
+                data["trailing_bytes"] = reader.byte_list(8)
             case _:
                 pass
     # These two do not serialize base data
@@ -243,6 +250,12 @@ def encode_bytes(p: dict[str, Any], work_type: str) -> bytes:
                 | "EPalWorkableType::Booth"
             ):
                 writer.float(p["required_work_amount"])
+            case "EPalWorkableType::FishPond":
+                writer.write(bytes(p["leading_bytes"]))
+                writer.float(p["required_work_amount"])
+                writer.write(bytes(p["unknown_bytes"]))
+                writer.float(p["current_work_amount"])
+                writer.write(bytes(p["trailing_bytes"]))
             case _:
                 pass
     # These two do not serialize base data
