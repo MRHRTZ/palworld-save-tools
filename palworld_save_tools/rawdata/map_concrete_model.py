@@ -575,6 +575,7 @@ def decode_bytes(
             }
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectItemDropOnDamagModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["drop_item_infos"] = reader.tarray(pal_item_and_num_read)
             if not reader.eof():
                 data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
@@ -772,6 +773,7 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.guid(p["item_id"]["dynamic_id"]["local_id_in_created_world"])
             writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectItemDropOnDamagModel":
+            writer.write(bytes(p["leading_bytes"]))
             writer.tarray(pal_item_and_slot_writer, p["drop_item_infos"])
             if "unknown_bytes" in p:
                 writer.write(bytes(p["unknown_bytes"]))
