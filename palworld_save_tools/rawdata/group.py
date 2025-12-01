@@ -64,7 +64,8 @@ def decode_bytes(
             "map_object_instance_ids_base_camp_points": reader.tarray(uuid_reader),
             "guild_name": reader.fstring(),
             "last_guild_name_modifier_player_uid": reader.guid(),
-            "unknown_2": reader.byte_list(20),
+            "unknown_2": reader.byte_list(4),
+            "admin_player_uid": reader.guid(),
             "players": reader.tarray(player_info_reader),
             "trailing_bytes": reader.byte_list(4),
         }
@@ -133,6 +134,7 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
         writer.fstring(p["guild_name"])
         writer.guid(p["last_guild_name_modifier_player_uid"])
         writer.write(bytes(p["unknown_2"]))
+        writer.guid(p["admin_player_uid"])
         writer.tarray(player_info_writer, p["players"])
         writer.write(bytes(p["trailing_bytes"]))
     encoded_bytes = writer.bytes()

@@ -33,8 +33,9 @@ def decode_bytes(
         data |= egg_data
     elif (reader.size - reader.data.tell()) == 12:
         data["type"] = "armor"
+        data["leading_bytes"] = reader.byte_list(4)
         data["durability"] = reader.float()
-        data["trailing_bytes"] = reader.byte_list(8)
+        data["trailing_bytes"] = reader.byte_list(4)
         if not reader.eof():
             raise Exception("Warning: EOF not reached")
     else:
@@ -102,6 +103,7 @@ def encode_bytes(p: dict[str, Any]) -> bytes:
         writer.properties(p["object"])
         writer.write(bytes(p["trailing_bytes"]))
     elif p["type"] == "armor":
+        writer.write(bytes(p["leading_bytes"]))
         writer.float(p["durability"])
         writer.write(bytes(p["trailing_bytes"]))
     elif p["type"] == "weapon":

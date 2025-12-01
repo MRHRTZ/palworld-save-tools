@@ -34,6 +34,7 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "campfire": "PalMapObjectConvertItemModel",
     "characterrankup": "PalMapObjectRankUpCharacterModel",
     "commondropitem3d": "PalMapObjectDropItemModel",
+    "commondropitem3d_sk": "PalMapObjectDropItemModel",
     "cookingstove": "PalMapObjectConvertItemModel",
     "damagablerock_pv": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0001": "PalMapObjectItemDropOnDamagModel",
@@ -42,8 +43,6 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "damagablerock0004": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0005": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0017": "PalMapObjectItemDropOnDamagModel",
-    "damagablerock0018": "PalMapObjectItemDropOnDamagModel",
-    "damagablerock0019": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0006": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0007": "PalMapObjectItemDropOnDamagModel",
     "damagablerock0008": "PalMapObjectItemDropOnDamagModel",
@@ -67,11 +66,13 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "electricgenerator2": "PalMapObjectGenerateEnergyModel",
     "electricgenerator3": "PalMapObjectGenerateEnergyModel",
     "electrickitchen": "PalMapObjectConvertItemModel",
+    "hugekitchen": "PalMapObjectConvertItemModel",
     "factory_comfortable_01": "PalMapObjectConvertItemModel",
     "factory_comfortable_02": "PalMapObjectConvertItemModel",
     "factory_hard_01": "PalMapObjectConvertItemModel",
     "factory_hard_02": "PalMapObjectConvertItemModel",
     "factory_hard_03": "PalMapObjectConvertItemModel",
+    "factory_hard_04": "PalMapObjectConvertItemModel",
     "farmblockv2_grade01": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_grade02": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_grade03": "PalMapObjectFarmBlockV2Model",
@@ -79,15 +80,11 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "farmblockv2_tomato": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_lettuce": "PalMapObjectFarmBlockV2Model",
     "farmblockv2_berries": "PalMapObjectFarmBlockV2Model",
-    "farmblockv2_potato": "PalMapObjectFarmBlockV2Model",
-    "farmblockv2_onion": "PalMapObjectFarmBlockV2Model",
-    "farmblockv2_carrot": "PalMapObjectFarmBlockV2Model",
     "fasttravelpoint": "PalMapObjectFastTravelPointModel",
     "hightechkitchen": "PalMapObjectConvertItemModel",
     "itemchest": "PalMapObjectItemChestModel",
     "itemchest_02": "PalMapObjectItemChestModel",
     "itemchest_03": "PalMapObjectItemChestModel",
-    "itemchest_04": "PalMapObjectItemChestModel",
     "dev_itemchest": "PalMapObjectItemChestModel",
     "medicalpalbed": "PalMapObjectMedicalPalBedModel",
     "medicalpalbed_02": "PalMapObjectMedicalPalBedModel",
@@ -105,6 +102,10 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "pickupitem_stone": "PalMapObjectPickupItemOnLevelModel",
     "pickupitem_potato": "PalMapObjectPickupItemOnLevelModel",
     "pickupitem_poppy": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_nightstone": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_yakushimamushroom_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_yakushimamushroom_02": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_yakushimamushroom_03": "PalMapObjectPickupItemOnLevelModel",
     "playerbed": "PalMapObjectPlayerBedModel",
     "playerbed_02": "PalMapObjectPlayerBedModel",
     "playerbed_03": "PalMapObjectPlayerBedModel",
@@ -112,6 +113,7 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "spherefactory_black_01": "PalMapObjectConvertItemModel",
     "spherefactory_black_02": "PalMapObjectConvertItemModel",
     "spherefactory_black_03": "PalMapObjectConvertItemModel",
+    "spherefactory_black_04": "PalMapObjectConvertItemModel",
     "spherefactory_white_01": "PalMapObjectConvertItemModel",
     "spherefactory_white_02": "PalMapObjectConvertItemModel",
     "spherefactory_white_03": "PalMapObjectConvertItemModel",
@@ -124,6 +126,7 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "weaponfactory_dirty_01": "PalMapObjectConvertItemModel",
     "weaponfactory_dirty_02": "PalMapObjectConvertItemModel",
     "weaponfactory_dirty_03": "PalMapObjectConvertItemModel",
+    "weaponfactory_dirty_04": "PalMapObjectConvertItemModel",
     "well": "PalMapObjectProductItemModel",
     "woodhouse1": "PalBuildObject",
     "workbench": "PalMapObjectConvertItemModel",
@@ -144,20 +147,20 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "stationdeforest2": "PalMapObjectProductItemModel",
     "workbench_skillunlock": "PalMapObjectConvertItemModel",
     "workbench_skillcard": "PalMapObjectConvertItemModel",
-    "wooden_foundation": "PalBuildObject",
-    "wooden_wall": "PalBuildObject",
-    "wooden_roof": "PalBuildObject",
-    "wooden_stair": "PalBuildObject",
+    "wooden_foundation": "PalBuildObjectBasicBase",
+    "wooden_wall": "PalBuildObjectBasicBase",
+    "wooden_roof": "PalBuildObjectBasicBase",
+    "wooden_stair": "PalBuildObjectBasicBase",
     "wooden_doorwall": "PalMapObjectDoorModel",
-    "stone_foundation": "PalBuildObject",
-    "stone_wall": "PalBuildObject",
-    "stone_roof": "PalBuildObject",
-    "stone_stair": "PalBuildObject",
+    "stone_foundation": "PalBuildObjectBasicBase",
+    "stone_wall": "PalBuildObjectBasicBase",
+    "stone_roof": "PalBuildObjectBasicBase",
+    "stone_stair": "PalBuildObjectBasicBase",
     "stone_doorwall": "PalMapObjectDoorModel",
-    "metal_foundation": "PalBuildObject",
-    "metal_wall": "PalBuildObject",
-    "metal_roof": "PalBuildObject",
-    "metal_stair": "PalBuildObject",
+    "metal_foundation": "PalBuildObjectBasicBase",
+    "metal_wall": "PalBuildObjectBasicBase",
+    "metal_roof": "PalBuildObjectBasicBase",
+    "metal_stair": "PalBuildObjectBasicBase",
     "metal_doorwall": "PalMapObjectDoorModel",
     "buildablegoddessstatue": "PalMapObjectCharacterStatusOperatorModel",
     "spa": "PalMapObjectAmusementModel",
@@ -210,15 +213,15 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "signboard": "PalMapObjectSignboardModel",
     "basecampbattledirector": "PalMapObjectBaseCampWorkerDirectorModel",
     "monsterfarm": "PalMapObjectMonsterFarmModel",
-    "wood_windowwall": "PalBuildObject",
-    "stone_windowwall": "PalBuildObject",
-    "metal_windowwall": "PalBuildObject",
-    "wood_trianglewall": "PalBuildObject",
-    "stone_trianglewall": "PalBuildObject",
-    "metal_trianglewall": "PalBuildObject",
-    "wood_slantedroof": "PalBuildObject",
-    "stone_slantedroof": "PalBuildObject",
-    "metal_slantedroof": "PalBuildObject",
+    "wood_windowwall": "PalBuildObjectBasicBase",
+    "stone_windowwall": "PalBuildObjectBasicBase",
+    "metal_windowwall": "PalBuildObjectBasicBase",
+    "wood_trianglewall": "PalBuildObjectBasicBase",
+    "stone_trianglewall": "PalBuildObjectBasicBase",
+    "metal_trianglewall": "PalBuildObjectBasicBase",
+    "wood_slantedroof": "PalBuildObjectBasicBase",
+    "stone_slantedroof": "PalBuildObjectBasicBase",
+    "metal_slantedroof": "PalBuildObjectBasicBase",
     "table1": "PalBuildObject",
     "barrel_wood": "PalMapObjectItemChestModel",
     "box_wood": "PalMapObjectItemChestModel",
@@ -243,24 +246,24 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "container01_iron": "PalMapObjectItemChestModel",
     "tablesquare_wood": "PalBuildObject",
     "tablecircular_wood": "PalBuildObject",
-    "bench_wood": "PalBuildObject",
-    "stool_wood": "PalBuildObject",
+    "bench_wood": "PalMapObjectPlayerSitModel",
+    "stool_wood": "PalMapObjectPlayerSitModel",
     "decal_palsticker_pinkcat": "PalBuildObject",
-    "stool_high_wood": "PalBuildObject",
+    "stool_high_wood": "PalMapObjectPlayerSitModel",
     "counter_wood": "PalBuildObject",
     "rug_wood": "PalBuildObject",
     "shelf_hang02_wood": "PalBuildObject",
     "ivy01": "PalBuildObject",
     "ivy02": "PalBuildObject",
     "ivy03": "PalBuildObject",
-    "chair01_wood": "PalBuildObject",
+    "chair01_wood": "PalMapObjectPlayerSitModel",
     "box01_stone": "PalBuildObject",
     "barrel01_iron": "PalBuildObject",
     "barrel02_iron": "PalBuildObject",
     "barrel03_iron": "PalBuildObject",
     "cablecoil01_iron": "PalBuildObject",
-    "chair01_iron": "PalBuildObject",
-    "chair02_iron": "PalBuildObject",
+    "chair01_iron": "PalMapObjectPlayerSitModel",
+    "chair02_iron": "PalMapObjectPlayerSitModel",
     "clock01_wall_iron": "PalBuildObject",
     "garbagebag_iron": "PalBuildObject",
     "goalsoccer_iron": "PalBuildObject",
@@ -269,9 +272,9 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "pipeclay01_iron": "PalBuildObject",
     "signexit_ceiling_iron": "PalBuildObject",
     "signexit_wall_iron": "PalBuildObject",
-    "sofa01_iron": "PalBuildObject",
-    "sofa02_iron": "PalBuildObject",
-    "stool01_iron": "PalBuildObject",
+    "sofa01_iron": "PalMapObjectPlayerSitModel",
+    "sofa02_iron": "PalMapObjectPlayerSitModel",
+    "stool01_iron": "PalMapObjectPlayerSitModel",
     "tablecircular01_iron": "PalBuildObject",
     "tableside01_iron": "PalBuildObject",
     "tablesquare01_iron": "PalBuildObject",
@@ -287,8 +290,8 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "trafficcone03_iron": "PalBuildObject",
     "trafficlight01_iron": "PalBuildObject",
     "bathtub_stone": "PalBuildObject",
-    "chair01_stone": "PalBuildObject",
-    "chair02_stone": "PalBuildObject",
+    "chair01_stone": "PalMapObjectPlayerSitModel",
+    "chair02_stone": "PalMapObjectPlayerSitModel",
     "clock01_stone": "PalBuildObject",
     "curtain01_wall_stone": "PalBuildObject",
     "desk01_stone": "PalBuildObject",
@@ -303,15 +306,15 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "rug02_stone": "PalBuildObject",
     "rug03_stone": "PalBuildObject",
     "rug04_stone": "PalBuildObject",
-    "sofa01_stone": "PalBuildObject",
-    "sofa02_stone": "PalBuildObject",
+    "sofa01_stone": "PalMapObjectPlayerSitModel",
+    "sofa02_stone": "PalMapObjectPlayerSitModel",
     "sofa03_stone": "PalBuildObject",
-    "stool01_stone": "PalBuildObject",
+    "stool01_stone": "PalMapObjectPlayerSitModel",
     "stove01_stone": "PalBuildObject",
     "tablecircular01_stone": "PalBuildObject",
     "tabledresser01_stone": "PalMapObjectCharacterMakeModel",
     "tablesink01_stone": "PalBuildObject",
-    "toilet01_stone": "PalBuildObject",
+    "toilet01_stone": "PalMapObjectPlayerSitModel",
     "toiletholder01_stone": "PalBuildObject",
     "towlrack01_stone": "PalBuildObject",
     "plant01_plant": "PalBuildObject",
@@ -334,60 +337,167 @@ MAP_OBJECT_NAME_TO_CONCRETE_MODEL_CLASS: dict[str, str] = {
     "trafficsign02_iron": "PalBuildObject",
     "trafficsign03_iron": "PalBuildObject",
     "trafficsign04_iron": "PalBuildObject",
-    "chair01_pal": "PalBuildObject",
+    "chair01_pal": "PalMapObjectPlayerSitModel",
     "altar": "PalBuildObjectRaidBossSummon",
     "copperpit": "PalMapObjectProductItemModel",
     "copperpit_2": "PalMapObjectProductItemModel",
     "electrichatchingpalegg": "PalMapObjectHatchingEggModel",
     "pickupitem_cavemushroom": "PalMapObjectPickupItemOnLevelModel",
+    "coolerpalfoodbox": "PalMapObjectPalFoodBoxModel",
     "treasurebox_oilrig": "PalMapObjectTreasureBoxModel",
+    "sulfurpit": "PalMapObjectProductItemModel",
+    "coalpit": "PalMapObjectProductItemModel",
+    "icecrusher": "PalMapObjectConvertItemModel",
+    "dismantlingconveyor": "PalBuildObjectConvertCharacterToItem",
+    "wallsignboard": "PalMapObjectSignboardModel",
     "treasurebox_electric": "PalMapObjectTreasureBoxModel",
-    "treasurebox_ivy": "PalMapObjectTreasureBoxModel",
-    "treasurebox_ice": "PalMapObjectTreasureBoxModel",
     "treasurebox_fire": "PalMapObjectTreasureBoxModel",
     "treasurebox_water": "PalMapObjectTreasureBoxModel",
-    "treasurebox_fishingjunk_requiredlonghold": "PalMapObjectTreasureBoxModel",
-    "treasurebox_fishingjunk_requiredlonghold2": "PalMapObjectTreasureBoxModel",
-    "treasurebox_requiredlonghold": "PalMapObjectTreasureBoxModel",
+    "glass_foundation": "PalBuildObjectBasicBase",
+    "glass_wall": "PalBuildObjectBasicBase",
+    "glass_roof": "PalBuildObjectBasicBase",
+    "glass_stair": "PalBuildObjectBasicBase",
+    "glass_doorwall": "PalMapObjectDoorModel",
+    "glass_trianglewall": "PalBuildObjectBasicBase",
+    "glass_slantedroof": "PalBuildObjectBasicBase",
+    "glass_windowwall": "PalBuildObjectBasicBase",
+    "wooden_pillar": "PalBuildObjectBasicBase",
+    "stone_pillar": "PalBuildObjectBasicBase",
+    "metal_pillars": "PalBuildObjectBasicBase",
+    "glass_pillars": "PalBuildObjectBasicBase",
+    "meteordrop_pickup": "PalMapObjectPickupItemOnLevelModel",
+    "supplydrop": "PalMapObjectSupplyStorageModel",
     "meteordrop_damagable": "PalMapObjectItemDropOnDamagModel",
     "electricgenerator_large": "PalMapObjectGenerateEnergyModel",
-    "medicalpalbed_05": "PalMapObjectMedicalPalBedModel",
-    "pickupitem_nightstone": "PalMapObjectPickupItemOnLevelModel",
-    "workspeedincrease1": "PalMapObjectBaseCampPassiveEffectModel",
-    "coalpit": "PalMapObjectProductItemModel",
-    "quartzpit": "PalMapObjectProductItemModel",
-    "sulfurpit": "PalMapObjectProductItemModel",
-    "lab": "PalMapObjectLabModel",
-    "palmedicinebox": "PalMapObjectPalMedicineBoxModel",
-    "sanitydecrease1": "PalMapObjectBaseCampPassiveEffectModel",
-    "energystorage_electric": "PalMapObjectEnergyStorageModel",
-    "hugekitchen": "PalMapObjectConvertItemModel",
-    "spherefactory_black_04": "PalMapObjectConvertItemModel",
-    "icecrusher": "PalMapObjectConvertItemModel",
-    "wallsignboard": "PalMapObjectSignboardModel",
-    "skinchange": "BlueprintGeneratedClass",
-    "dismantlingconveyor": "BlueprintGeneratedClass",
+    "treasurebox_requiredlonghold": "PalMapObjectTreasureBoxModel",
+    "oilpump": "PalMapObjectProductItemModel",
+    "pickupitem_lotus_attack_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_attack_02": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_hp_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_hp_02": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_stamina_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_stamina_02": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_workspeed_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_workspeed_02": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_weight_01": "PalMapObjectPickupItemOnLevelModel",
+    "pickupitem_lotus_weight_02": "PalMapObjectPickupItemOnLevelModel",
+    "skinchange": "PalMapObjectSkinChangeModel",
+    "pickupitem_dogcoin": "PalMapObjectPickupItemOnLevelModel",
+    "japanesestyle_wall_01": "PalBuildObjectBasicBase",
     "japanesestyle_doorwall_01": "PalMapObjectDoorModel",
     "japanesestyle_doorwall_02": "PalMapObjectDoorModel",
-    "japanesestyle_doorwall_03": "PalMapObjectDoorModel",
+    "japanesestyle_roof_01": "PalBuildObjectBasicBase",
+    "japanesestyle_roof_02": "PalBuildObjectBasicBase",
+    "japanesestyle_slantedroof": "PalBuildObjectBasicBase",
+    "japanesestyle_trianglewall": "PalBuildObjectBasicBase",
+    "japanesestyle_windowwall": "PalBuildObjectBasicBase",
+    "japanesestyle_foundation": "PalBuildObjectBasicBase",
+    "japanesestyle_stair": "PalBuildObjectBasicBase",
+    "japanesestyle_pillar": "PalBuildObjectBasicBase",
+    "sanitydecrease1": "PalMapObjectBaseCampPassiveEffectModel",
+    "workspeedincrease1": "PalMapObjectBaseCampPassiveEffectModel",
+    "quartzpit": "PalMapObjectProductItemModel",
     "factory_money": "PalMapObjectConvertItemModel",
-    "multielectrichatchingpalegg": "PalMapObjectMultiHatchingEggModel",
-    "coolerpalfoodbox": "BlueprintGeneratedClass",
-    "itembooth": "PalMapObjectItemBoothModel",
-    "palbooth": "PalMapObjectPalBoothModel",
-    "supplydrop": "PalMapObjectSupplyStorageModel",
-    "tansu": "PalMapObjectItemChestModel",
-    "guildchest": "PalMapObjectGuildChestModel",
+    "itemchest_04": "PalMapObjectItemChestModel",
+    "medicalpalbed_05": "PalMapObjectMedicalPalBedModel",
+    "farmblockv2_carrot": "PalMapObjectFarmBlockV2Model",
+    "farmblockv2_onion": "PalMapObjectFarmBlockV2Model",
+    "farmblockv2_potato": "PalMapObjectFarmBlockV2Model",
     "basecampitemdispenser": "PalMapObjectBaseCampItemDispenserModel",
-    "farm_skillfruits": "PalMapObjectFarmSkillFruitsModel",
+    "guildchest": "PalMapObjectGuildChestModel",
+    "woodcreator": "PalMapObjectProductItemModel",
     "expedition": "PalMapObjectCharacterTeamMissionModel",
-    "oilpump": "PalMapObjectProductItemModel",
-    "compositedesk": "PalMapObjectConvertItemModel",
-    "glass_doorwall": "PalMapObjectDoorModel",
-    "zaisu": "PalMapObjectPlayerSitModel",
-    "dimensionpalstorage": "PalMapObjectDimensionPalStorageModel",
-    "zabuton": "PalBuildObject",
+    "itembooth": "PalMapObjectItemBoothModel",
+    "lab": "PalMapObjectLabModel",
+    "palbooth": "PalMapObjectPalBoothModel",
+    "multielectrichatchingpalegg": "PalMapObjectMultiHatchingEggModel",
+    "operatingtable": "PalMapObjectOperatingTableModel",
+    "manualelectricgenerator": "PalMapObjectGenerateEnergyModel",
+    "farm_skillfruits": "PalMapObjectFarmSkillFruitsModel",
+    "wooden_ladder": "PalBuildObjectBasicBase",
+    "palmedicinebox": "PalMapObjectPalMedicineBoxModel",
+    "energystorage_electric": "PalMapObjectEnergyStorageModel",
+    "damagablerock0018": "PalMapObjectItemDropOnDamagModel",
     "headstone": "PalMapObjectSignboardModel",
+    "japanesestyle_doorwall_03": "PalMapObjectDoorModel",
+    "damagablerock0019": "PalMapObjectItemDropOnDamagModel",
+    "byobu": "PalBuildObject",
+    "kakejiku": "PalBuildObject",
+    "zaisu": "PalMapObjectPlayerSitModel",
+    "zabuton": "PalMapObjectPlayerSitModel",
+    "irori": "PalBuildObject",
+    "toro": "PalBuildObject",
+    "andon": "PalBuildObject",
+    "shishiodoshi": "PalBuildObject",
+    "bonsai": "PalBuildObject",
+    "koro": "PalBuildObject",
+    "seika": "PalBuildObject",
+    "tansu": "PalMapObjectItemChestModel",
+    "fudukue": "PalBuildObject",
+    "compositedesk": "PalMapObjectConvertItemModel",
+    "globalpalstorage": "PalMapObjectGlobalPalStorageModel",
+    "dimensionpalstorage": "PalMapObjectDimensionPalStorageModel",
+    "wire_fence": "PalBuildObject",
+    "sf_foundation": "PalBuildObjectBasicBase",
+    "sf_wall": "PalBuildObjectBasicBase",
+    "sf_roof": "PalBuildObjectBasicBase",
+    "sf_stair": "PalBuildObjectBasicBase",
+    "sf_doorwall": "PalMapObjectDoorModel",
+    "sf_trianglewall": "PalBuildObjectBasicBase",
+    "sf_slantedroof": "PalBuildObjectBasicBase",
+    "sf_windowwall": "PalBuildObjectBasicBase",
+    "sf_pillars": "PalBuildObjectBasicBase",
+    "lilyqueenstatue": "PalBuildObject",
+    "conservationgroupbannera": "PalBuildObject",
+    "conservationgroupbannerb": "PalBuildObject",
+    "banyan_big": "PalBuildObjectBasicBase",
+    "hunter_gangflag": "PalBuildObject",
+    "palcage": "PalBuildObject",
+    "woodenbarricade": "PalBuildObject",
+    "walltorch02": "PalMapObjectTorchModel",
+    "candlestand": "PalMapObjectTorchModel",
+    "firestand": "PalMapObjectTorchModel",
+    "wood_fence": "PalBuildObject",
+    "stone_fence": "PalBuildObject",
+    "iron_fence": "PalBuildObject",
+    "glass_fence": "PalBuildObject",
+    "japanesestyle_fence": "PalBuildObject",
+    "sf_fence": "PalBuildObject",
+    "destroyablewall_rock01": "PalMapObjectItemDropOnDamagModel",
+    "destroyablewall_rock02": "PalMapObjectItemDropOnDamagModel",
+    "pickupitem_affectionfruit": "PalMapObjectPickupItemOnLevelModel",
+    "crystalpit": "PalMapObjectProductItemModel",
+    "spa3": "PalMapObjectAmusementModel",
+    "multihatchingpalegg": "PalMapObjectMultiHatchingEggModel",
+    "treasurebox_fishingjunk_requiredlonghold": "PalMapObjectTreasureBoxModel",
+    "treasurebox_fishingjunk_requiredlonghold2": "PalMapObjectTreasureBoxModel",
+    "fishingpond1": "PalMapObjectFishPondModel",
+    "fishingpond2": "PalMapObjectFishPondModel",
+    "basecampworkerextrastation": "PalMapObjectBaseCampWorkerExtraStationModel",
+    "sf_desk": "PalBuildObject",
+    "sf_chair": "PalMapObjectPlayerSitModel",
+    "damagabletree_yakushima001": "PalMapObjectItemDropOnDamagModel",
+    "damagabletree_yakushima002": "PalMapObjectItemDropOnDamagModel",
+    "damagabletree_yakushima003": "PalMapObjectItemDropOnDamagModel",
+    "lanterntop": "PalMapObjectLampModel",
+    "shrine_lantern": "PalMapObjectLampModel",
+    "guardiandogstatue": "PalBuildObject",
+    "yakushima_crystal": "PalMapObjectItemDropOnDamagModel",
+    "yakushima_pot": "PalMapObjectItemDropOnDamagModel",
+    "hunter_flag": "PalBuildObject",
+    "hunter_banner": "PalBuildObject",
+    "believer_flag": "PalBuildObject",
+    "believer_banner": "PalBuildObject",
+    "firecult_flag": "PalBuildObject",
+    "firecult_banner": "PalBuildObject",
+    "police_flag": "PalBuildObject",
+    "police_banner": "PalBuildObject",
+    "scientist_flag": "PalBuildObject",
+    "scientist_banner": "PalBuildObject",
+    "ninja_flag": "PalBuildObject",
+    "ninja_banner": "PalBuildObject",
+    "treasurebox_yakushima": "PalMapObjectTreasureBoxModel",
+    "yakushima_healheart": "PalMapObjectInstantEffectModel",
 }
 
 
@@ -465,6 +575,7 @@ def decode_bytes(
             }
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectItemDropOnDamagModel":
+            data["leading_bytes"] = reader.byte_list(4)
             data["drop_item_infos"] = reader.tarray(pal_item_and_num_read)
             if not reader.eof():
                 data["unknown_bytes"] = [int(b) for b in reader.read_to_end()]
@@ -546,6 +657,13 @@ def decode_bytes(
             data["trailing_bytes"] = reader.byte_list(4)
         case "PalMapObjectDimensionPalStorageModel":
             data["trailing_bytes"] = reader.byte_list(12)
+        case "PalMapObjectFishPondModel":
+            data["leading_bytes"] = reader.byte_list(4)
+            data["ongoing_name"] = reader.fstring()
+            data["ongoing_count"] = reader.i32()
+            data["remain_count"] = reader.i32()
+            data["pal_rewards"] = reader.tarray(fishpond_pal_reward_info_read)
+            data["trailing_bytes"] = reader.byte_list(4)
         case (
             "PalMapObjectPlayerBedModel"
             | "PalBuildObject"
@@ -573,6 +691,11 @@ def decode_bytes(
             | "PalMapObjectDisplayCharacterModel"
             | "Default_PalMapObjectConcreteModelBase"
             | "PalMapObjectDamagedScarecrowModel"
+            | "PalMapObjectSkinChangeModel"
+            | "PalMapObjectOperatingTableModel"
+            | "PalMapObjectBaseCampWorkerExtraStationModel"
+            | "PalMapObjectGlobalPalStorageModel"
+            | "PalBuildObjectConvertCharacterToItem"
         ):
             data["trailing_bytes"] = reader.byte_list(4)
         case _:
@@ -650,6 +773,7 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.guid(p["item_id"]["dynamic_id"]["local_id_in_created_world"])
             writer.write(bytes(p["trailing_bytes"]))
         case "PalMapObjectItemDropOnDamagModel":
+            writer.write(bytes(p["leading_bytes"]))
             writer.tarray(pal_item_and_slot_writer, p["drop_item_infos"])
             if "unknown_bytes" in p:
                 writer.write(bytes(p["unknown_bytes"]))
@@ -727,6 +851,13 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             writer.write(bytes(p["leading_bytes"]))
             writer.guid(p["private_lock_player_uid"])
             writer.write(bytes(p["trailing_bytes"]))
+        case "PalMapObjectFishPondModel":
+            writer.write(bytes(p["leading_bytes"]))
+            writer.fstring(p["ongoing_name"])
+            writer.i32(p["ongoing_count"])
+            writer.i32(p["remain_count"])
+            writer.tarray(fishpond_pal_reward_info_writer, p["pal_rewards"])
+            writer.write(bytes(p["trailing_bytes"]))
         case (
             "PalMapObjectPlayerBedModel"
             | "PalBuildObject"
@@ -755,6 +886,11 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
             | "PalMapObjectDisplayCharacterModel"
             | "Default_PalMapObjectConcreteModelBase"
             | "PalMapObjectDamagedScarecrowModel"
+            | "PalMapObjectSkinChangeModel"
+            | "PalMapObjectOperatingTableModel"
+            | "PalMapObjectBaseCampWorkerExtraStationModel"
+            | "PalMapObjectGlobalPalStorageModel"
+            | "PalBuildObjectConvertCharacterToItem"
         ):
             writer.write(bytes(p["trailing_bytes"]))
         case _:
@@ -764,3 +900,15 @@ def encode_bytes(p: Optional[dict[str, Any]]) -> bytes:
 
     encoded_bytes = writer.bytes()
     return encoded_bytes
+
+
+def fishpond_pal_reward_info_read(reader: FArchiveReader) -> dict[str, Any]:
+    return {
+        "character_id": reader.fstring(),
+        "level": reader.i32(),
+    }
+
+
+def fishpond_pal_reward_info_writer(writer: FArchiveWriter, p: dict[str, Any]) -> None:
+    writer.fstring(p["character_id"])
+    writer.i32(p["level"])

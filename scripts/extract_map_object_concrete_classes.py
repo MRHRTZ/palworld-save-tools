@@ -106,7 +106,7 @@ def main():
         if struct_data is None:
             print("Warning: No struct found for", blueprint_class_name)
             continue
-        if "ConcreteModelClass" in struct_data["Properties"]:
+        if "ConcreteModelClass" in struct_data["Properties"] and struct_data["Properties"]["ConcreteModelClass"] is not None:
             concrete_classes[object_name] = resolve_concrete_class_name(
                 struct_data["Properties"]["ConcreteModelClass"]["ObjectName"]
             )
