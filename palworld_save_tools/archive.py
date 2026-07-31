@@ -522,6 +522,8 @@ class FArchiveReader:
             return self.fstring()
         elif type_name == "IntProperty":
             return self.i32()
+        elif type_name == "UInt32Property":
+            return self.u32()
         elif type_name == "BoolProperty":
             return self.bool()
         else:
@@ -964,6 +966,8 @@ class FArchiveWriter:
             self.fstring(value)
         elif type_name == "IntProperty":
             self.i32(value)
+        elif type_name == "UInt32Property":
+            self.u32(value)
         elif type_name == "BoolProperty":
             self.bool(value)
         else:
